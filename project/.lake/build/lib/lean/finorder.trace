@@ -26,7 +26,7 @@
        [["@finorder:extraDep", "00000000000006bb"]]],
       ["imports",
        [["Mathlib.RingTheory.Polynomial.Cyclotomic.Roots transitive imports (legacy)",
-         "129d7ac88d946714"],
+         "f22d8194c30bdad9"],
         ["Mathlib.RingTheory.Polynomial.Cyclotomic.Roots:importAllArts",
          "8115075056dc7cba"]]]]],
     ["libs",
@@ -39,4 +39,4 @@
   ["C:\\Users\\Lean\\Graduate\\project\\finorder.lean", "e8e1927f7fd2fe6d"],
   ["options", "00000000000006bb"],
   ["Module.leanArgs: #[]", "00000000000006bb"]],
- "depHash": "acdc251b3f172633"}
+ "depHash": "bb7f833e1cce5906"}
