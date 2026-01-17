@@ -1,21 +1,15 @@
 import Mathlib.LinearAlgebra.Matrix.CharPoly.Minpoly
 import Mathlib.FieldTheory.Minpoly.Basic
 
-
-notation "E"  => !![1, 0; 0, 1]    -- 位数 1, det = 1,  tr = 2,  t^2 - 2t + 1
-notation "-E" => !![-1, 0; 0, -1]  -- 位数 2, det = 1,  tr = -2, t^2 + 2t + 1
-notation "P1" => !![1, 0; 0, -1]   -- 位数 2, det = -1, tr = 0,  t^2 - 1
-notation "P2" => !![0, -1; 1, -1]  -- 位数 3, det = 1,  tr = -1, t^2 + t + 1
-notation "P3" => !![0, 1; -1, 0]   -- 位数 4, det = 1,  tr = 0,  t^2 + 1
-notation "P4" => !![0, -1; 1, 1]   -- 位数 6, det = 1,  tr = 1,  t^2 - t + 1
-
 notation "t" => (Polynomial.X : Polynomial ℚ)
 
 open Matrix Polynomial
 open Function minpoly Polynomial Set
 
+variable (M : Matrix (Fin 2) (Fin 2) ℚ)
 
-lemma det_one (M : Matrix (Fin 2) (Fin 2) ℚ) (h : ∃ n ≥ 1, M^n = 1) :
+
+lemma det_one (h : ∃ n ≥ 1, M^n = 1) :
     (det M = 1) ∨ (det M = -1) := by
   rcases h with ⟨n, nge, finiteorder⟩
   have h₁ : det (M^n) = 1 := by simp [finiteorder]
@@ -25,7 +19,7 @@ lemma det_one (M : Matrix (Fin 2) (Fin 2) ℚ) (h : ∃ n ≥ 1, M^n = 1) :
   · exact Or.inr neg
   · linarith
 
-lemma charpoly_two_by (M : Matrix (Fin 2) (Fin 2) ℚ) :
+lemma charpoly_two_by :
     M.charpoly = t^2 - (C M.trace)*t + (C M.det) := by -- exact charpoly_fin_two ℚ
   have trace : M.trace = M 0 0 + M 1 1 := by simp [trace]
   rw [trace, charpoly]
@@ -38,7 +32,7 @@ lemma charpoly_two_by (M : Matrix (Fin 2) (Fin 2) ℚ) :
   simp
   ring
 
-lemma trace_classification_one (M : Matrix (Fin 2) (Fin 2) ℚ)
+lemma trace_classification_one
           (h : ∃ n ≥ 1, M^n = 1) (h' : det M = 1) :
         (trace M = 2) ∨ (trace M = -2) ∨ (trace M = -1) ∨
         (trace M = 0) ∨ (trace M = 1) := by
@@ -48,7 +42,7 @@ lemma trace_classification_one (M : Matrix (Fin 2) (Fin 2) ℚ)
   simp at charpolyM
   sorry
 
-lemma trace_classification_neg (M : Matrix (Fin 2) (Fin 2) ℚ)
+lemma trace_classification_neg
         (h : ∃ n ≥ 1, M^n = 1) (h' : det M = -1) :
         (trace M = 0) := by
   rcases h with ⟨n, nge, finiteorder⟩
@@ -57,7 +51,7 @@ lemma trace_classification_neg (M : Matrix (Fin 2) (Fin 2) ℚ)
   simp at charpolyM
   sorry
 
-theorem charpoly_classification (M : Matrix (Fin 2) (Fin 2) ℚ) (h : ∃ n ≥ 1, M^n = 1) :
+theorem charpoly_classification (h : ∃ n ≥ 1, M^n = 1) :
           (charpoly M = (t - 1)*(t - 1)) ∨
           (charpoly M = (t + 1)*(t + 1)) ∨
           (charpoly M = (t + 1)*(t - 1)) ∨
@@ -114,7 +108,7 @@ theorem charpoly_classification (M : Matrix (Fin 2) (Fin 2) ℚ) (h : ∃ n ≥ 
       _ = t^2 - 0*t - 1 := by rw [possible_traces_neg, detneg1]; norm_num; ring
       _ = (t + 1)*(t - 1) := by ring
 
-lemma charpoly_classification_eq (M : Matrix (Fin 2) (Fin 2) ℚ)
+lemma charpoly_classification_eq
     (h : ∃ n ≥ 1, M^n = 1) (α : ℚ) (h' : M = scalar _ α) :
     (charpoly M = (t - 1)*(t - 1)) ∨ (charpoly M = (t + 1)*(t + 1)) := by
   rcases h with ⟨n, ⟨hn, hm⟩⟩
@@ -137,7 +131,7 @@ lemma charpoly_classification_eq (M : Matrix (Fin 2) (Fin 2) ℚ)
   · left; rw [one] at h₁; exact h₁
   · right; simp [neg] at h₁; assumption
 
-lemma charpoly_classification_neq (M : Matrix (Fin 2) (Fin 2) ℚ)
+lemma charpoly_classification_neq
       (h : ∃ n ≥ 1, M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
       (charpoly M = t^2 - 1) ∨
       (charpoly M = t^2 + t + 1) ∨
@@ -164,7 +158,7 @@ lemma need_eq (a b : ℚ) (h : a ≠ 0) : t = (C a⁻¹) * ((C a)*t + (C b)) + (
     rw [inv_mul_cancel₀ h]
     simp
 
-lemma charpoly_eq_minpoly (M : Matrix (Fin 2) (Fin 2) ℚ)
+lemma charpoly_eq_minpoly
     (h : ∃ n ≥ 1, M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
     M.charpoly = minpoly ℚ M :=  by
   have auxchar: M.charpoly.natDegree = 2 := by
@@ -247,7 +241,7 @@ lemma charpoly_eq_minpoly (M : Matrix (Fin 2) (Fin 2) ℚ)
   rw [sthis]
   simp
 
-lemma minpoly_eq (M : Matrix (Fin 2) (Fin 2) ℚ) (h : ∃ n ≥ 1, M^n = 1)
+lemma minpoly_eq (h : ∃ n ≥ 1, M^n = 1)
     (α : ℚ) (h' : M = scalar _ α) :
     (minpoly ℚ M = t - 1) ∨ (minpoly ℚ M = t + 1) := by
   rcases h with ⟨n, ⟨hn, hm⟩⟩
@@ -272,7 +266,7 @@ lemma minpoly_eq (M : Matrix (Fin 2) (Fin 2) ℚ) (h : ∃ n ≥ 1, M^n = 1)
   · left; rw [one] at h₁; exact h₁
   · simp [neg] at h₁; exact Or.inr h₁
 
-lemma minpoly_neq (M : Matrix (Fin 2) (Fin 2) ℚ)
+lemma minpoly_neq
     (h : ∃ n ≥ 1, M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
     (minpoly ℚ M = t^2 - 1) ∨
     (minpoly ℚ M = t^2 + t + 1) ∨
@@ -281,7 +275,7 @@ lemma minpoly_neq (M : Matrix (Fin 2) (Fin 2) ℚ)
   rw [← charpoly_eq_minpoly M h h']
   exact charpoly_classification_neq M h h'
 
-lemma charpoly_dvd (M : Matrix (Fin 2) (Fin 2) ℚ) (n : ℕ) (hn : n ≥ 1)
+lemma charpoly_dvd (n : ℕ) (hn : n ≥ 1)
     (h : M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
     charpoly M ∣ t^n - 1 := by
   have h₁ : charpoly M = minpoly ℚ M := charpoly_eq_minpoly M ⟨n, hn, h⟩ h'
@@ -291,7 +285,7 @@ lemma charpoly_dvd (M : Matrix (Fin 2) (Fin 2) ℚ) (n : ℕ) (hn : n ≥ 1)
 
 -- 上の定理から考えられる固有多項式を調べる
 
-theorem conjugate_classification (M : Matrix (Fin 2) (Fin 2) ℚ) (h : ∃ n ≥ 1, M^n = 1) :
+theorem conjugate_classification (h : ∃ n ≥ 1, M^n = 1) :
         (∃ P : Matrix (Fin 2) (Fin 2) ℚ, P⁻¹*M*P = E) ∨
         (∃ P : Matrix (Fin 2) (Fin 2) ℚ, P⁻¹*M*P = -E) ∨
         (∃ P : Matrix (Fin 2) (Fin 2) ℚ, P⁻¹*M*P = P1) ∨

@@ -9,214 +9,203 @@ notation "P2" => !![0, -1; 1, -1]  -- 位数 3, det = 1,  tr = -1, t^2 + t + 1
 notation "P3" => !![0, 1; -1, 0]   -- 位数 4, det = 1,  tr = 0,  t^2 + 1
 notation "P4" => !![0, -1; 1, 1]   -- 位数 6, det = 1,  tr = 1,  t^2 - t + 1
 
-open Matrix Polynomial Function minpoly Set Finset Irreducible
-open UniqueFactorizationMonoid
-
+open Matrix Polynomial minpoly Finset Irreducible
 namespace Nat
 
 variable (M : GL (Fin 2) ℚ)
 
-lemma charpoly_deg_eq_two : (charpoly M.val).natDegree = 2 :=
-  charpoly_natDegree_eq_dim M.val
+local notation "Φ" n => cyclotomic n ℚ
 
-lemma minpoly_dvd_charpoly : minpoly ℚ M.val ∣ charpoly M.val := by
-  apply dvd ℚ M.val
-  exact aeval_self_charpoly M.val
-
-lemma minpoly_deg_le_two : (minpoly ℚ M.val).natDegree ≤ 2 :=
+-- 最小多項式の次数は2以下
+lemma minpoly_deg_le_two : (minpoly ℚ M.val).natDegree ≤ 2 := by
+  have h₁ : (charpoly M.val).natDegree = 2 :=
+    charpoly_natDegree_eq_dim M.val
+  have h₂ : minpoly ℚ M.val ∣ charpoly M.val :=
+    dvd ℚ M.val (aeval_self_charpoly M.val)
   calc
     _ ≤ (charpoly M.val).natDegree := by
-      apply natDegree_le_of_dvd
-      · apply minpoly_dvd_charpoly M
+      apply natDegree_le_of_dvd h₂
       · apply ne_zero_of_natDegree_gt
         show 1 < (charpoly M.val).natDegree
-        rw [charpoly_deg_eq_two]; norm_num
-    _ = 2 := by rw [charpoly_deg_eq_two]
+        rw [h₁]; decide
+    _ = 2 := by rw [h₁]
 
+-- 最小多項式は X^n - 1 を割り切る
 lemma minpoly_dvd_X_pow_sub_one (h' : n = orderOf M.val) :
     minpoly ℚ M.val ∣ X ^ n - 1 := by
-  have h₁ : aeval M.val (X ^ n - 1 : ℚ[X]) = 0 := by rw [h', aeval_sub, map_pow, aeval_X, pow_orderOf_eq_one, map_one, sub_self]
+  have h₁ : aeval M.val (X ^ n - 1 : ℚ[X]) = 0 := by
+    rw [h', aeval_sub, map_pow, aeval_X, pow_orderOf_eq_one, map_one, sub_self]
   apply dvd; exact h₁
 
+-- 最小多項式にはモニックな既約因子が存在する
 lemma exist_normalizefactor : ∃ f : ℚ[X], Monic f ∧ Irreducible f ∧ f ∣ minpoly ℚ M.val := by
   apply exists_monic_irreducible_factor
-  have h₂ : ¬IsUnit (minpoly ℚ M.val) := by
+  have h₁ : ¬IsUnit (minpoly ℚ M.val) := by
     rw [isUnit_iff_degree_eq_zero]; push_neg
-    have h₃ : 0 < (minpoly ℚ M.val).degree := by
-      apply degree_pos (Matrix.isIntegral M.val)
-    exact Ne.symm (_root_.ne_of_lt h₃)
-  exact h₂
+    have h₂ : 0 < (minpoly ℚ M.val).degree :=
+      degree_pos (isIntegral M.val)
+    exact Ne.symm (_root_.ne_of_lt h₂)
+  exact h₁
 
+-- 最小多項式の任意のモニックな既約因子はnの約数iについて第i円分多項式と一致する
 lemma normalizedfactor_eq_cyclotomic (h : IsOfFinOrder M.val) (h' : n = orderOf M.val)
     (f : ℚ[X]) (fmon : Monic f) (firr : Irreducible f) (fdvd : f ∣ minpoly ℚ M.val) :
-    ∃ i ∈ n.divisors, f = cyclotomic i ℚ := by
-  have hn : 0 < n := by simp only [h', orderOf_pos_iff, h]
+    ∃ i ∈ n.divisors, f = Φ i := by
+  have npos : 0 < n := by simp only [h', orderOf_pos_iff, h]
   have hdvd : f ∣ X^n - 1 := dvd_trans fdvd (minpoly_dvd_X_pow_sub_one M h')
-  have h₀ : ∃ i ∈ n.divisors, ∃ u : ℚ[X]ˣ, f = (u.val) * cyclotomic i ℚ := by
-    have h₁ : ∏ i ∈ divisors n, cyclotomic i ℚ = X ^ n - 1 := by
-      apply prod_cyclotomic_eq_X_pow_sub_one hn
-    rw [← h₁] at hdvd
-    have h₂ : _root_.Prime f := prime firr
-    have h₃ : ∃ i ∈ n.divisors, f ∣ cyclotomic i ℚ := by
-      rw [← h₂.dvd_finset_prod_iff]; exact hdvd
-    obtain ⟨i, imem, fdvd⟩ := h₃
-    have h₄ : Irreducible (cyclotomic i ℚ) := by
-      apply cyclotomic.irreducible_rat (pos_of_mem_divisors imem)
+  have h₁ : ∃ i ∈ n.divisors, ∃ u : ℚ[X]ˣ, f = (u.val) * Φ i := by
+    have h1 : ∏ i ∈ divisors n, (Φ i) = X ^ n - 1 := by
+      apply prod_cyclotomic_eq_X_pow_sub_one npos
+    rw [← h1] at hdvd
+    have h2 : _root_.Prime f := prime firr
+    have h3 : ∃ i ∈ n.divisors, f ∣ Φ i := by
+      rw [← h2.dvd_finset_prod_iff]; exact hdvd
+    obtain ⟨i, imem, fdvd⟩ := h3
+    have h4 : Irreducible (Φ i) :=
+      cyclotomic.irreducible_rat (pos_of_mem_divisors imem)
     use i; constructor
     · exact imem
-    · have h_assoc : Associated f (cyclotomic i ℚ) := associated_of_dvd firr h₄ fdvd
-      rcases h_assoc with ⟨u, hu⟩
+    · have h5 : Associated f (Φ i) := associated_of_dvd firr h4 fdvd
+      rcases h5 with ⟨u, hu⟩
       use u⁻¹
       rw [← hu, mul_comm, mul_assoc, Units.mul_inv, mul_one]
-  obtain ⟨i, imem, u, feq⟩ := h₀
+  obtain ⟨i, imem, u, feq⟩ := h₁
   use i, imem
   have ueq : u.val = 1 := by
     rw [feq] at fmon
-    have h₅ : Monic (cyclotomic i ℚ) := cyclotomic.monic i ℚ
-    have h₆ : Monic u.val := Monic.of_mul_monic_right h₅ fmon
-    rw [← Monic.isUnit_iff h₆]; exact u.isUnit
+    have h6 : Monic (Φ i) := cyclotomic.monic i ℚ
+    have h7 : Monic u.val := Monic.of_mul_monic_right h6 fmon
+    rw [← Monic.isUnit_iff h7]; exact u.isUnit
   rw [ueq, one_mul] at feq; exact feq
 
-lemma deg_le_two (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) :
-    ∃ i ∈ n.divisors, (cyclotomic i ℚ).natDegree ≤ 2 := by
-  obtain ⟨f, fmon, firr, fdvd⟩ := exist_normalizefactor M
-  obtain ⟨i, imem, feq⟩ := normalizedfactor_eq_cyclotomic M h h' f fmon firr fdvd
-  have hn : 0 < n := by simp only [h', orderOf_pos_iff, h]
-  have h₁ : minpoly ℚ M.val ∣ X ^ n - 1 := minpoly_dvd_X_pow_sub_one M h'
-  have h₂ : f ∣ X ^ n - 1 := dvd_trans fdvd h₁
-  use i, imem
-  calc
-    _ ≤ (minpoly ℚ M.val).natDegree := by
-      apply natDegree_le_of_dvd
-      · rw [feq] at fdvd; exact fdvd
-      · exact ne_zero_of_finite ℚ M.val
-    _ ≤ 2 := minpoly_deg_le_two M
+-- 円分多項式の次数はオイラーのトーシェント関数と一致する
+lemma cyclotomic_deg_eq_totient (n : ℕ) : (Φ n).natDegree = φ n :=
+  natDegree_cyclotomic n ℚ
 
-lemma cyclotomic_deg_eq_totient (n : ℕ) : (cyclotomic n ℚ).natDegree = φ n := by
-  exact natDegree_cyclotomic n ℚ
-
+-- 任意の自然数nはその素因数の指数乗の積で表せる
 lemma exist_factorization (n : ℕ) (h : n ≠ 0) : n = ∏ p ∈ n.primeFactors, p ^ (n.factorization p) := by
   nth_rw 1 [← factorization_prod_pow_eq_self h, prod_factorization_eq_prod_primeFactors]
 
+-- 自然数nについてφ n = ∏ φ p^n = ∏ p^(n-1)*(p-1) が成り立つ
 lemma totient_factorization (n : ℕ) (h : n ≠ 0) : φ n = ∏ p ∈ n.primeFactors, (p ^ (n.factorization p - 1) * (p - 1)) := by
   rw [totient_eq_prod_factorization h]; rfl
 
-lemma p_cases (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : ∀ p ∈ n.primeFactors, p = 2 ∨ p = 3 := by
-  intro p hp
-  have hp' : Prime p := by exact prime_of_mem_primeFactors hp
-  rw [totient_factorization n h] at h'
-  have h₁ : p ^ (n.factorization p - 1) * (p - 1) ∣ 2 := by
-    rw [← h']; apply dvd_prod_of_mem; exact hp
-  have h₂ : p - 1 ∣ 2 := dvd_of_mul_left_dvd h₁
-  have h₃ : p - 1 ≤ 2 := by apply le_of_dvd (by norm_num) h₂
-  interval_cases hu : p - 1
-  · omega
-  · left; omega
-  · right; omega
-
+-- φ n = 2 ならば n は2と3以外の素因数をもたない
 lemma n_exist (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : n = 2 ^ (n.factorization 2) * 3 ^ (n.factorization 3) := by
-  have h₁ := p_cases n h h'
+  have h₁ : ∀ p ∈ n.primeFactors, p = 2 ∨ p = 3 := by
+    intro p pmem
+    rw [totient_factorization n h] at h'
+    have h1 : p ^ (n.factorization p - 1) * (p - 1) ∣ 2 := by
+      rw [← h']; apply dvd_prod_of_mem; exact pmem
+    have h2 : p - 1 ∣ 2 := dvd_of_mul_left_dvd h1
+    have h3 : p - 1 ≤ 2 := le_of_dvd (by decide) h2
+    interval_cases hu : p - 1
+    · omega
+    · left; omega
+    · right; omega
   rw [totient_factorization n h] at h'
   nth_rw 1 [exist_factorization n h]
   have h₂ : n.primeFactors ⊆ ({2, 3} : Finset ℕ) := by
-    intro p hp; rw [Finset.mem_insert, Finset.mem_singleton]; apply h₁; assumption
-  rw [prod_subset h₂ ?_]
-  · rw [prod_pair]; norm_num
+    intro p hp; rw [mem_insert, mem_singleton]; apply h₁; exact hp
+  rw [prod_subset h₂]
+  · rw [prod_pair]; decide
   · intro p pmem pnot; rw [pow_eq_one_iff]; right
     exact notMem_support_iff.mp pnot
 
+-- φ n = 2 ならば n = 3, 4, 6
 lemma totient_eq_two (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : n ∈ ({3, 4, 6} : Finset ℕ) := by
   have n_exist := n_exist n h h'
   rw [n_exist, totient_mul] at h'
   set a := n.factorization 2
   set b := n.factorization 3
   · have h₁ : φ (2 ^ a) ∣ 2 := by nth_rw 2 [← h']; apply dvd_mul_right
-    have h₂ : φ (2 ^ a) ≤ 2 := le_of_dvd (by norm_num) h₁
-    interval_cases h_two : φ (2 ^ a)
+    have h₂ : φ (2 ^ a) ≤ 2 := le_of_dvd (by decide) h₁
+    interval_cases h₃ : φ (2 ^ a)
     · linarith
-    · rw [totient_eq_one_iff] at h_two
+    · rw [totient_eq_one_iff] at h₃
       rw [one_mul] at h'
       have bneq : b ≠ 0 := by
         by_contra
         rw [this, pow_zero, totient_one] at h'; linarith
-      rcases h_two with one | two
+      rcases h₃ with one | two
       · rw [one, one_mul] at n_exist
         have hb : b = 1 := by
           rw [totient_prime_pow] at h'
           · simp at h'; omega
           · decide
-          · apply pos_of_ne_zero bneq
+          · exact pos_of_ne_zero bneq
         rw [hb, pow_one] at n_exist
-        rw [Finset.mem_insert]; left; assumption
+        rw [mem_insert]; left; exact n_exist
       · rw [two] at n_exist
         have hb : b = 1 := by
           rw [totient_prime_pow] at h'
           · simp at h'; omega
           · decide
-          · apply pos_of_ne_zero bneq
+          · exact pos_of_ne_zero bneq
         rw [hb, pow_one] at n_exist
-        simp only [Finset.mem_insert, Finset.mem_singleton]; right; right; assumption
+        simp only [mem_insert, mem_singleton]; right; right; exact n_exist
     · have h₃ : φ (3 ^ b) = 1 := by linarith [h']
       rw [totient_eq_one_iff] at h₃
       rcases h₃ with one | two
       · simp only [pow_eq_one_iff, OfNat.ofNat_ne_one, false_or] at one
         rw [one, pow_zero, mul_one] at n_exist
         have ha : a = 2 := by
-          rw [totient_prime_pow] at h_two
-          · simp [pow_eq_self_iff h₂] at h_two; assumption
+          rw [totient_prime_pow] at h₃
+          · simp [pow_eq_self_iff h₂] at h₃; exact h₃
           · decide
           · have aneq : a ≠ 0 := by
               by_contra
-              rw [this, pow_zero, totient_one] at h_two; linarith
+              rw [this, pow_zero, totient_one] at h₃; linarith
             apply pos_of_ne_zero aneq
         rw [ha] at n_exist
-        simp only [Finset.mem_insert, Finset.mem_singleton]; right; left; assumption
+        simp only [mem_insert, mem_singleton]; right; left; exact n_exist
       · have hb : b = 0 ∨ b ≥ 1 := by omega
         obtain zero | one := hb
         · rw [zero, pow_zero] at two; linarith
         · have hb' : 3 ≤ 3 ^ b :=
             calc
-              3 = 3 ^ 1 := by norm_num
-              _ ≤ 3 ^ b := by apply pow_le_pow; rfl; norm_num; exact one
+              3 = 3 ^ 1 := by decide
+              _ ≤ 3 ^ b := by apply pow_le_pow; rfl; decide; exact one
           linarith
   · apply coprime_pow_primes <;> decide
 
-lemma totient_le_two_iff (hn : 0 < n) : φ n ≤ 2 ↔ n ∈ ({1, 2, 3, 4, 6} : Finset ℕ) := by
-  constructor <;> intro h₀
+-- φ n ≤ 2 は n = 1, 2, 3, 4, 6 と同値
+lemma totient_le_two_iff (npos : 0 < n) : φ n ≤ 2 ↔ n ∈ ({1, 2, 3, 4, 6} : Finset ℕ) := by
+  constructor <;> intro h₁
   · have h₂ : n ≤ 6 := by
-      interval_cases ht : totient n
-      · rw [totient_eq_zero] at ht; linarith [ht]
-      · rw [totient_eq_one_iff] at ht
-        rcases ht with n1 | n2 <;> linarith
+      interval_cases h₃ : totient n
+      · rw [totient_eq_zero] at h₃; linarith [h₃]
+      · rw [totient_eq_one_iff] at h₃
+        rcases h₃ with n1 | n2 <;> linarith
       · have h₄ : n ∈ ({3, 4, 6} : Finset ℕ) := by
           apply totient_eq_two
-          · exact Nat.ne_zero_of_lt hn
-          · assumption
+          · exact Nat.ne_zero_of_lt npos
+          · exact h₃
         fin_cases h₄ <;> linarith
     interval_cases n <;> simp; contradiction
-  · fin_cases h₀ <;> decide
+  · fin_cases h₁ <;> decide
 
-lemma cyclotomic_four : cyclotomic 4 ℚ = X ^ 2 + 1 := by
-  have h₁ : cyclotomic 4 ℚ = (X^4 - 1) /ₘ ∏ i ∈ properDivisors 4, cyclotomic i ℚ := by
-      apply cyclotomic_eq_X_pow_sub_one_div (by positivity)
+-- 第4円分多項式 = X ^ 2 + 1
+lemma cyclotomic_four : (Φ 4) = X ^ 2 + 1 := by
+  have h₁ : (Φ 4) = (X^4 - 1) /ₘ ∏ i ∈ properDivisors 4, Φ i :=
+    cyclotomic_eq_X_pow_sub_one_div (by decide)
   have h₂ : properDivisors 4 = {1, 2} := by decide
   have h₃ : (X - 1) * (X + 1) = (X^2 - 1 : ℚ[X]) := by ring
-  rw [h₂, prod_pair (by norm_num), cyclotomic_one, cyclotomic_two, h₃] at h₁
-  rw [h₁, divByMonic_eq_div]
-  rw [EuclideanDomain.div_eq_iff_eq_mul_of_dvd]
+  rw [h₂, prod_pair (by decide), cyclotomic_one, cyclotomic_two, h₃] at h₁
+  rw [h₁, divByMonic_eq_div, EuclideanDomain.div_eq_iff_eq_mul_of_dvd]
   · ring
-  · exact X_pow_sub_C_ne_zero (by norm_num) 1
-  · exact dvd_pow_sub_one_of_dvd (by norm_num)
+  · exact X_pow_sub_C_ne_zero (by decide) 1
+  · exact dvd_pow_sub_one_of_dvd (by decide)
   · exact monic_X_pow_sub (by norm_num)
 
-lemma cyclotomic_six : cyclotomic 6 ℚ = X ^ 2 - X + 1 := by
-  have h₁ : cyclotomic 6 ℚ = (X^6 - 1) /ₘ ∏ i ∈ properDivisors 6, cyclotomic i ℚ := by
-      apply cyclotomic_eq_X_pow_sub_one_div (by positivity)
+-- 第6円分多項式 = X ^ 2 - X + 1
+lemma cyclotomic_six : (Φ 6) = X ^ 2 - X + 1 := by
+  have h₁ : (Φ 6) = (X^6 - 1) /ₘ ∏ i ∈ properDivisors 6, Φ i := by
+      apply cyclotomic_eq_X_pow_sub_one_div (by decide)
   have h₂ : properDivisors 6 = {1, 2, 3} := by decide
   have h₃ : (X - 1) * ((X + 1) * (X^2 + X + 1)) = (X^4 + X^3 - X - 1 : ℚ[X]) := by ring
   simp [h₂, cyclotomic_one, cyclotomic_two, cyclotomic_three, h₃] at h₁
-  rw [h₁, divByMonic_eq_div]
-  rw [EuclideanDomain.div_eq_iff_eq_mul_of_dvd]
+  rw [h₁, divByMonic_eq_div, EuclideanDomain.div_eq_iff_eq_mul_of_dvd]
   · ring
   · intro h
     have h_coeff := congr_arg (coeff · 4) h
@@ -225,39 +214,37 @@ lemma cyclotomic_six : cyclotomic 6 ℚ = X ^ 2 - X + 1 := by
     rw [h₄]
     apply dvd_mul_right
   · have h : (X^4 + X^3 - X - 1 : ℚ[X]).natDegree = 4 := by
-      compute_degree <;> norm_num
+      compute_degree <;> decide
     simp [Monic, leadingCoeff, h, coeff_X, coeff_one]
 
-lemma cyclotomic_class (h : IsOfFinOrder M.val) (h' : n = orderOf M.val)
+lemma normalizedfactor_class (h : IsOfFinOrder M.val) (h' : n = orderOf M.val)
     (f : ℚ[X]) (fmon : Monic f) (firr : Irreducible f) (fdvd : f ∣ minpoly ℚ M.val) :
-    f ∈ ({X - 1, X + 1, X^2 + 1, X^2 + X + 1, X^2 - X + 1} : Finset ℚ[X]) := by
+    f ∈ ({Φ 1, Φ 2, Φ 3, Φ 4, Φ 6} : Finset ℚ[X]) := by
   obtain ⟨i, imem, feq⟩ := normalizedfactor_eq_cyclotomic M h h' f fmon firr fdvd
   rw [feq] at fdvd
-  have h₁ : (cyclotomic i ℚ).natDegree ≤ 2 :=
+  have h₁ : (Φ i).natDegree ≤ 2 :=
     calc
       _ ≤ (minpoly ℚ M.val).natDegree := natDegree_le_of_dvd fdvd (ne_zero_of_finite ℚ M.val)
       _ ≤ 2 := minpoly_deg_le_two M
   rw [cyclotomic_deg_eq_totient, totient_le_two_iff (pos_of_mem_divisors imem)] at h₁
-  rw [← cyclotomic_one, ← cyclotomic_two, ← cyclotomic_three, ← cyclotomic_four, ← cyclotomic_six, feq]
-  simp only [Finset.mem_insert, Finset.mem_singleton] at h₁
-  rcases h₁ with (h | h | h | h | h) <;> rw [h] <;> simp
+  fin_cases h₁ <;> simp [feq]
 
 lemma g_class (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) (f g : ℚ[X])
     (fmon : Monic f) (girr : Irreducible g) (fgeq : (minpoly ℚ M.val) = f * g) :
-    g ∈ ({X - 1, X + 1, X^2 + 1, X^2 + X + 1, X^2 - X + 1} : Finset ℚ[X]) := by
+    g ∈ ({Φ 1, Φ 2, Φ 3, Φ 4, Φ 6} : Finset ℚ[X]) := by
   have gdvd : g ∣ minpoly ℚ M.val := by
     rw [fgeq]; exact dvd_mul_left g f
-  have h₀ : Monic (minpoly ℚ M.val) := monic (Matrix.isIntegral M.val)
+  have h₀ : Monic (minpoly ℚ M.val) := monic (isIntegral M.val)
   have gmon : Monic g := by
     rw [fgeq] at h₀; exact Monic.of_mul_monic_left fmon h₀
-  exact cyclotomic_class M h h' g gmon girr gdvd
+  exact normalizedfactor_class M h h' g gmon girr gdvd
 
-lemma minpoly_classify (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) :
-    minpoly ℚ M.val ∈ ({X - 1, X + 1, X^2 + X + 1, X^2 + 1, X^2 - X + 1, (X - 1)*(X + 1)} : Finset ℚ[X]) := by
+lemma minpoly_class (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) :
+    minpoly ℚ M.val ∈ ({Φ 1, Φ 2, Φ 3, Φ 4, Φ 6, (Φ 1)*(Φ 2)} : Finset ℚ[X]) := by
   obtain ⟨f, fmon, firr, fdvd⟩ := exist_normalizefactor M
-  have h₀ := cyclotomic_class M h h' f fmon firr fdvd
+  have h₀ := normalizedfactor_class M h h' f fmon firr fdvd
   rcases fdvd with ⟨g, hg⟩
-  have h₁ : Monic (minpoly ℚ M.val) := monic (Matrix.isIntegral M.val)
+  have h₁ : Monic (minpoly ℚ M.val) := monic (isIntegral M.val)
   have h₂ : Monic g := by
     rw [hg] at h₁
     apply Monic.of_mul_monic_left fmon h₁
@@ -270,43 +257,46 @@ lemma minpoly_classify (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) :
     have h₅ := minpoly_deg_le_two M
     interval_cases hdeg : (minpoly ℚ M.val).natDegree
     · contrapose! hdeg
-      exact ne_of_gt (minpoly.natDegree_pos (Matrix.isIntegral M.val))
-    · norm_num
-    · norm_num
-  rw [Finset.mem_insert, Finset.mem_singleton] at h₄
+      exact ne_of_gt (natDegree_pos (isIntegral M.val))
+    · decide
+    · decide
+  rw [mem_insert, mem_singleton] at h₄
   rcases h₄ with (h4 | h4)
   · have gdeg : g.natDegree = 0 := by
       have hactor_deg : 1 ≤ f.natDegree := by
-        simp only [Finset.mem_insert, Finset.mem_singleton] at h₀
+        simp only [mem_insert, mem_singleton] at h₀
         rcases h₀ with (h | h | h | h | h) <;> rw [h]
-        · have h1 : (X - 1 : ℚ[X]).natDegree = 1 := natDegree_X_sub_C 1
+        · have h1 : (Φ 1).natDegree = 1 := by
+            rw [cyclotomic_one]; exact natDegree_X_sub_C 1
           rw [h1]
-        · have h1 : (X + 1 : ℚ[X]).natDegree = 1 := natDegree_X_add_C 1
+        · have h1 : (Φ 2).natDegree = 1 := by
+            rw [cyclotomic_two]; exact natDegree_X_add_C 1
           rw [h1]
-        · have h1 : (X^2 + 1 : ℚ[X]).natDegree = 2 := natDegree_X_pow_add_C
+        · have h1 : (Φ 3).natDegree = 2 := by
+            rw [cyclotomic_three]; compute_degree; decide
           linarith [h1]
-        · have h1 : (X^2 + X + 1 : ℚ[X]).natDegree = 2 := by
-            compute_degree; norm_num
+        · have h1 : (Φ 4).natDegree = 2 := by
+            rw [cyclotomic_four]; exact natDegree_X_pow_add_C
           linarith [h1]
-        · have h1 : (X^2 - X + 1 : ℚ[X]).natDegree = 2 := by
-            compute_degree; norm_num
+        · have h1 : (Φ 6).natDegree = 2 := by
+            rw [cyclotomic_six]; compute_degree; decide
           linarith [h1]
       linarith
     have geq : g = 1 := eq_one_of_monic_natDegree_zero h₂ gdeg
-    have hf : minpoly ℚ M.val = f := by rw [geq, mul_one] at hg; assumption
-    simp only [← hf, Finset.mem_insert, Finset.mem_singleton] at h₀
+    have hf : minpoly ℚ M.val = f := by rw [geq, mul_one] at hg; exact hg
+    simp only [← hf, mem_insert, mem_singleton] at h₀
     rcases h₀ with (h | h | h | h | h) <;> simp [h]
-  · simp only [Finset.mem_insert, Finset.mem_singleton] at h₀
+  · simp only [mem_insert, mem_singleton] at h₀
     rcases h₀ with (h1 | h1 | h | h | h)
-    · have fdeg : f.natDegree = 1 := by rw [h1]; compute_degree; norm_num
+    · have fdeg : f.natDegree = 1 := by rw [h1, cyclotomic_one]; compute_degree; decide
       have gdeg : g.natDegree = 1 := by rw [h4, fdeg] at h₃; linarith
-      simp only [Finset.mem_insert, Finset.mem_singleton]; right; right; right; right; right
+      simp only [mem_insert, mem_singleton]; right; right; right; right; right
       rw [hg, h1]
       have girr : Irreducible g := by
-        rw [← degree_eq_iff_natDegree_eq_of_pos (by norm_num), cast_one] at gdeg
+        rw [← degree_eq_iff_natDegree_eq_of_pos (by decide), cast_one] at gdeg
         exact irreducible_of_degree_eq_one  gdeg
       obtain h5 := g_class M h h' f g fmon girr hg
-      simp only [Finset.mem_insert, Finset.mem_singleton] at h5
+      simp only [mem_insert, mem_singleton] at h5
       rcases h5 with (h6 | h6 | h6 | h6 | h6)
       · rw [h6, ← h1] at hg
         have h₅ : Squarefree (minpoly ℚ M.val) := by
@@ -316,29 +306,29 @@ lemma minpoly_classify (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) :
             rw [ne_eq, cast_eq_zero]
             intro nh
             have hn : 0 < n := by simp only [h', orderOf_pos_iff, h]
-            linarith; norm_num
+            linarith; decide
           apply Squarefree.squarefree_of_dvd (minpoly_dvd_X_pow_sub_one M h') h₇
         rw [squarefree_iff_no_irreducibles (ne_zero_of_finite ℚ M.val)] at h₅
         specialize h₅ f firr; rw [hg] at h₅; contrapose h₅; exact dvd_refl (f * f)
-      · rw [h6]
+      · rw [h6, cyclotomic_one, cyclotomic_two]
       · rw [h6] at gdeg
-        have : (X^2 + 1 : ℚ[X]).natDegree = 2 := by compute_degree; norm_num
-        rw [this] at gdeg; contradiction
+        have : (X^2 + X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+        rw [cyclotomic_three, this] at gdeg; contradiction
       · rw [h6] at gdeg
-        have : (X^2 + X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; norm_num
-        rw [this] at gdeg; contradiction
+        have : (X^2 + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+        rw [cyclotomic_four, this] at gdeg; contradiction
       · rw [h6] at gdeg
-        have : (X^2 - X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; norm_num
-        rw [this] at gdeg; contradiction
-    · have fdeg : f.natDegree = 1 := by rw [h1]; compute_degree; norm_num
+        have : (X^2 - X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+        rw [cyclotomic_six, this] at gdeg; contradiction
+    · have fdeg : f.natDegree = 1 := by rw [h1, cyclotomic_two]; compute_degree; decide
       have gdeg : g.natDegree = 1 := by rw [h4, fdeg] at h₃; linarith
-      simp only [Finset.mem_insert, Finset.mem_singleton]; right; right; right; right; right
+      simp only [mem_insert, mem_singleton]; right; right; right; right; right
       rw [hg, h1]
       have girr : Irreducible g := by
-        rw [← degree_eq_iff_natDegree_eq_of_pos (by norm_num), cast_one] at gdeg
+        rw [← degree_eq_iff_natDegree_eq_of_pos (by decide), cast_one] at gdeg
         exact irreducible_of_degree_eq_one  gdeg
       obtain h5 := g_class M h h' f g fmon girr hg
-      simp only [Finset.mem_insert, Finset.mem_singleton] at h5
+      simp only [mem_insert, mem_singleton] at h5
       rcases h5 with (h6 | h6 | h6 | h6 | h6)
       · rw [h6, mul_comm]
       · rw [h6, ← h1] at hg
@@ -349,51 +339,51 @@ lemma minpoly_classify (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) :
             rw [ne_eq, cast_eq_zero]
             intro nh
             have hn : 0 < n := by simp only [h', orderOf_pos_iff, h]
-            linarith; norm_num
+            linarith; decide
           apply Squarefree.squarefree_of_dvd (minpoly_dvd_X_pow_sub_one M h') h₇
         rw [squarefree_iff_no_irreducibles (ne_zero_of_finite ℚ M.val)] at h₅
         specialize h₅ f firr; rw [hg] at h₅; contrapose h₅; exact dvd_refl (f * f)
       · rw [h6] at gdeg
-        have : (X^2 + 1 : ℚ[X]).natDegree = 2 := by compute_degree; norm_num
-        rw [this] at gdeg; contradiction
+        have : (X^2 + X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+        rw [cyclotomic_three, this] at gdeg; contradiction
       · rw [h6] at gdeg
-        have : (X^2 + X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; norm_num
-        rw [this] at gdeg; contradiction
+        have : (X^2 + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+        rw [cyclotomic_four, this] at gdeg; contradiction
       · rw [h6] at gdeg
-        have : (X^2 - X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; norm_num
-        rw [this] at gdeg; contradiction
-    · have fdeg : f.natDegree = 2 := by rw [h]; compute_degree; norm_num
+        have : (X^2 - X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+        rw [cyclotomic_six, this] at gdeg; contradiction
+    · have fdeg : f.natDegree = 2 := by rw [h, cyclotomic_three]; compute_degree; decide
       have gdeg : g.natDegree = 0 := by rw [h4, fdeg] at h₃; linarith
       have geq : g = 1 := eq_one_of_monic_natDegree_zero h₂ gdeg
-      have hf : minpoly ℚ M.val = f := by rw [geq, mul_one] at hg; assumption
+      have hf : minpoly ℚ M.val = f := by rw [geq, mul_one] at hg; exact hg
       rw [h] at hf
-      simp only [Finset.mem_insert, Finset.mem_singleton]; right; right; right; left; exact hf
-    · have fdeg : f.natDegree = 2 := by rw [h]; compute_degree; norm_num
+      simp only [mem_insert, mem_singleton]; right; right; left; exact hf
+    · have fdeg : f.natDegree = 2 := by rw [h, cyclotomic_four]; compute_degree; decide
       have gdeg : g.natDegree = 0 := by rw [h4, fdeg] at h₃; linarith
       have geq : g = 1 := eq_one_of_monic_natDegree_zero h₂ gdeg
-      have hf : minpoly ℚ M.val = f := by rw [geq, mul_one] at hg; assumption
+      have hf : minpoly ℚ M.val = f := by rw [geq, mul_one] at hg; exact hg
       rw [h] at hf
-      simp only [Finset.mem_insert, Finset.mem_singleton]; right; right; left; exact hf
-    · have fdeg : f.natDegree = 2 := by rw [h]; compute_degree; norm_num
+      simp only [mem_insert, mem_singleton]; right; right; right; left; exact hf
+    · have fdeg : f.natDegree = 2 := by rw [h, cyclotomic_six]; compute_degree; decide
       have gdeg : g.natDegree = 0 := by rw [h4, fdeg] at h₃; linarith
       have geq : g = 1 := eq_one_of_monic_natDegree_zero h₂ gdeg
-      have hf : minpoly ℚ M.val = f := by rw [geq, mul_one] at hg; assumption
+      have hf : minpoly ℚ M.val = f := by rw [geq, mul_one] at hg; exact hg
       rw [h] at hf
-      simp only [Finset.mem_insert, Finset.mem_singleton]; right; right; right; right; left; exact hf
+      simp only [mem_insert, mem_singleton]; right; right; right; right; left; exact hf
 
-lemma minpoly_cyc (h' : n = orderOf M.val)
-    (h₀ : minpoly ℚ M.val ∈ ({cyclotomic 1 ℚ, cyclotomic 2 ℚ, cyclotomic 3 ℚ, cyclotomic 4 ℚ, cyclotomic 6 ℚ, cyclotomic 1 ℚ * cyclotomic 2 ℚ} : Finset ℚ[X])) :
+lemma minpoly_cyc_order (h' : n = orderOf M.val)
+    (h₀ : minpoly ℚ M.val ∈ ({Φ 1, Φ 2, Φ 3, Φ 4, Φ 6, (Φ 1) * (Φ 2)} : Finset ℚ[X])) :
     n ∈ ({1, 2, 3, 4, 6} : Finset ℕ) := by
   simp at h₀
   rcases h₀ with (h0 | h0 | h0 | h0 | h0 | h0)
-  · rw [Finset.mem_insert]; left; rw [h', orderOf_eq_one_iff, Units.val_eq_one]
-    have h_eval := minpoly.aeval ℚ M.val
+  · rw [mem_insert]; left; rw [h', orderOf_eq_one_iff, Units.val_eq_one]
+    have h_eval := aeval ℚ M.val
     simp only [h0, aeval_X, map_sub, aeval_one, sub_eq_zero] at h_eval
     exact (GeneralLinearGroup.ext_iff M 1).mpr fun i => congrFun (congrFun h_eval i)
-  · simp only [Finset.mem_insert, Finset.mem_singleton]; right; left; rw [h']
-    have h_eval := minpoly.aeval ℚ M.val
+  · simp only [mem_insert, mem_singleton]; right; left; rw [h']
+    have h_eval := aeval ℚ M.val
     rw [h0] at h_eval
-    rw [orderOf_eq_iff (by norm_num)]
+    rw [orderOf_eq_iff (by decide)]
     constructor
     · have h_M : (M : Matrix (Fin 2) (Fin 2) ℚ) = -1 := by
         simpa only [map_add, aeval_X, aeval_one, add_eq_zero_iff_eq_neg] using h_eval
@@ -403,13 +393,13 @@ lemma minpoly_cyc (h' : n = orderOf M.val)
       have h_M : (M : Matrix (Fin 2) (Fin 2) ℚ) = -1 := by
         simpa only [map_add, aeval_X, aeval_one, add_eq_zero_iff_eq_neg] using h_eval
       rw [h_M, pow_one]; decide
-  · simp only [Finset.mem_insert, Finset.mem_singleton]; right; right; left; rw [h']
-    have h_eval := minpoly.aeval ℚ M.val
+  · simp only [mem_insert, mem_singleton]; right; right; left; rw [h']
+    have h_eval := aeval ℚ M.val
     rw [h0] at h_eval
-    rw [orderOf_eq_iff (by norm_num)]
+    rw [orderOf_eq_iff (by decide)]
     constructor
     · have h_poly : (X^3 - 1 : ℚ[X]) = (X - 1) * (X^2 + X + 1) := by ring
-      have h_aeval_3 : Polynomial.aeval M.val (X^3 - 1 : ℚ[X]) = 0 := by
+      have h_aeval_3 : aeval M.val (X^3 - 1 : ℚ[X]) = 0 := by
         rw [h_poly, map_mul, h_eval, mul_zero]
       rw [aeval_sub, map_pow, aeval_X, map_one, sub_eq_zero] at h_aeval_3
       exact h_aeval_3
@@ -424,13 +414,13 @@ lemma minpoly_cyc (h' : n = orderOf M.val)
           have two : (1 : Matrix (Fin 2) (Fin 2) ℚ) + 1 = 2 := by norm_num
           rw [two] at h_eval; exact eq_neg_of_add_eq_zero_left h_eval
         simp only [Meq, even_two, Even.neg_pow] at hM; norm_num at hM; contradiction
-  · simp only [Finset.mem_insert, Finset.mem_singleton]; right; right; right; left; rw [h']
-    have h_eval := minpoly.aeval ℚ M.val
+  · simp only [mem_insert, mem_singleton]; right; right; right; left; rw [h']
+    have h_eval := aeval ℚ M.val
     rw [h0] at h_eval
-    rw [orderOf_eq_iff (by norm_num)]
+    rw [orderOf_eq_iff (by decide)]
     constructor
     · have h_poly : (X^4 - 1 : ℚ[X]) = (X^2 + 1) * (X^2 - 1) := by ring
-      have h_aeval_4 : Polynomial.aeval M.val (X^4 - 1 : ℚ[X]) = 0 := by
+      have h_aeval_4 : aeval M.val (X^4 - 1 : ℚ[X]) = 0 := by
         rw [h_poly, map_mul, ← cyclotomic_four, h_eval, zero_mul]
       rw [aeval_sub, map_pow, aeval_X, map_one, sub_eq_zero] at h_aeval_4
       exact h_aeval_4
@@ -446,13 +436,13 @@ lemma minpoly_cyc (h' : n = orderOf M.val)
         have M_pow_two : M.val ^ 2 = -1 := eq_neg_of_add_eq_zero_left h_eval
         rw [pow_add M.val 1 2, M_pow_two, pow_one, mul_neg_one, neg_eq_iff_eq_neg] at hM
         rw [hM] at h_eval; norm_num at h_eval; contradiction
-  · simp only [Finset.mem_insert, Finset.mem_singleton]; right; right; right; right; rw [h']
-    have h_eval := minpoly.aeval ℚ M.val
+  · simp only [mem_insert, mem_singleton]; right; right; right; right; rw [h']
+    have h_eval := aeval ℚ M.val
     rw [h0] at h_eval
-    rw [orderOf_eq_iff (by norm_num)]
+    rw [orderOf_eq_iff (by decide)]
     constructor
     · have h_poly : (X^6 - 1 : ℚ[X]) = (X^2 - X + 1) * (X^4 + X^3 - X - 1) := by ring
-      have h_aeval_6 : Polynomial.aeval M.val (X^6- 1 : ℚ[X]) = 0 := by
+      have h_aeval_6 : aeval M.val (X^6- 1 : ℚ[X]) = 0 := by
         rw [h_poly, map_mul, ← cyclotomic_six, h_eval, zero_mul]
       rw [aeval_sub, map_pow, aeval_X, map_one, sub_eq_zero] at h_aeval_6
       exact h_aeval_6
@@ -513,10 +503,10 @@ lemma minpoly_cyc (h' : n = orderOf M.val)
             _ = - M.val + 1 := by noncomm_ring; norm_num
         rw [M_pow_five, add_eq_right, neg_eq_zero] at hM
         rw [hM] at h_eval; norm_num at h_eval
-  · simp only [Finset.mem_insert, Finset.mem_singleton]; right; left; rw [h']
-    have h_eval := minpoly.aeval ℚ M.val
+  · simp only [mem_insert, mem_singleton]; right; left; rw [h']
+    have h_eval := aeval ℚ M.val
     rw [h0] at h_eval
-    rw [orderOf_eq_iff (by norm_num)]
+    rw [orderOf_eq_iff (by decide)]
     constructor
     · rw [map_mul, map_add, map_sub, aeval_X, map_one] at h_eval
       have : M.val ^ 2 - 1 = 0 :=
@@ -527,19 +517,18 @@ lemma minpoly_cyc (h' : n = orderOf M.val)
     · intro m hm mpos
       interval_cases m
       rw [pow_one]; intro hM
-      have M_eval : Polynomial.aeval M.val (X - 1 : ℚ[X]) = 0 := by simp [hM]
-      have h_div : minpoly ℚ M.val ∣ (X - 1 : ℚ[X]) := minpoly.dvd ℚ M.val M_eval
+      have M_eval : aeval M.val (X - 1 : ℚ[X]) = 0 := by simp [hM]
+      have h_div : minpoly ℚ M.val ∣ (X - 1 : ℚ[X]) := dvd ℚ M.val M_eval
       rw [h0] at h_div
-      have h_deg := Polynomial.degree_le_of_dvd h_div (X_sub_C_ne_zero 1)
+      have h_deg := degree_le_of_dvd h_div (X_sub_C_ne_zero 1)
       have h₁ : (X - 1 : ℚ[X]).degree = 1 := degree_X_sub_C 1
       have h₂ : (X + 1 : ℚ[X]).degree = 1 := degree_X_add_C 1
       rw [degree_mul, h₁, h₂] at h_deg; norm_num at h_deg
 
 lemma finorder_class (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) :
     n ∈ ({1, 2, 3, 4, 6} : Finset ℕ) := by
-  rcases minpoly_classify M h h' with h₀
-  rw [← cyclotomic_one, ← cyclotomic_two, ← cyclotomic_three, ← cyclotomic_four, ← cyclotomic_six] at h₀
-  exact minpoly_cyc M h' h₀
+  rcases minpoly_class M h h' with h₀
+  exact minpoly_cyc_order M h' h₀
 
 noncomputable def toGL (A : Matrix (Fin 2) (Fin 2) ℚ) (h : IsUnit A.det) : GL (Fin 2) ℚ :=
   GeneralLinearGroup.mk'' A h
@@ -549,41 +538,38 @@ theorem finite_order_matrix (h : n ∈ ({1, 2, 3, 4, 6} : Finset ℕ)) :
   fin_cases h
   · use 1; rw [Units.val_one, orderOf_one]
   · use toGL P1 (by simp)
-    rw [toGL, GeneralLinearGroup.val_mk'']; rw [orderOf_eq_iff (by norm_num)]
+    rw [toGL, GeneralLinearGroup.val_mk'', orderOf_eq_iff (by decide)]
     constructor
     · ext i j; fin_cases i <;> fin_cases j <;> simp [pow_two]
-    · intro m mlt mpos; interval_cases m; rw [pow_one]; tauto
+    · intro m mlt mpos; interval_cases m; rw [pow_one]; decide
   · use toGL P2 (by simp)
-    rw [toGL, GeneralLinearGroup.val_mk'']; rw [orderOf_eq_iff (by norm_num)]
+    rw [toGL, GeneralLinearGroup.val_mk'', orderOf_eq_iff (by decide)]
     constructor
     · ext i j; fin_cases i <;> fin_cases j <;> simp [pow_three]
-    · intro m mlt mpos
-      interval_cases m
-      · rw [pow_one]; tauto
-      · simp [pow_two]; tauto
+    · intro m mlt mpos; interval_cases m
+      · rw [pow_one]; decide
+      · simp [pow_two]; decide
   · use toGL P3 (by simp)
-    rw [toGL, GeneralLinearGroup.val_mk'']; rw [orderOf_eq_iff (by norm_num)]
+    rw [toGL, GeneralLinearGroup.val_mk'', orderOf_eq_iff (by decide)]
     constructor
     · rw [pow_mul (!![0, 1; -1, 0]) 2 2]
       ext i j; fin_cases i <;> fin_cases j <;> simp [pow_two]
-    · intro m mlt mpos
-      interval_cases m
-      · rw [pow_one]; tauto
-      · simp [pow_two]; tauto
-      · simp [pow_three]; tauto
+    · intro m mlt mpos; interval_cases m
+      · rw [pow_one]; decide
+      · simp [pow_two]; decide
+      · simp [pow_three]; decide
   · use toGL P4 (by simp)
-    rw [toGL, GeneralLinearGroup.val_mk'']; rw [orderOf_eq_iff (by norm_num)]
+    rw [toGL, GeneralLinearGroup.val_mk'', orderOf_eq_iff (by decide)]
     constructor
     · rw [pow_mul (!![0, -1; 1, 1]) 2 3]
       ext i j; fin_cases i <;> fin_cases j <;> simp [pow_two, pow_three]
-    · intro m mlt mpos
-      interval_cases m
-      · rw [pow_one]; tauto
-      · simp [pow_two]; tauto
-      · simp [pow_three]; tauto
+    · intro m mlt mpos; interval_cases m
+      · rw [pow_one]; decide
+      · simp [pow_two]; decide
+      · simp [pow_three]; decide
       · rw [pow_mul (!![0, -1; 1, 1]) 2 2]
-        simp [pow_two]; tauto
+        simp [pow_two]; decide
       · rw [pow_add (!![0, -1; 1, 1]) 2 3]
-        simp [pow_two, pow_three]; tauto
+        simp [pow_two, pow_three]; decide
 
 #min_imports

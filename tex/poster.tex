@@ -1,5 +1,5 @@
 %!LW recipe = latexmk (PdfLaTeX)
-\documentclass[a0, portrait]{a0poster} % A0 縦向き
+\documentclass[a1, portrait]{a0poster} % A0 縦向き
 
 % --- 数学・記号系 ---
 \usepackage{amsmath, amsthm, mathtools}
@@ -30,183 +30,146 @@
 % --- lstlistingの設定の読み込み ---
 \def\lstlanguagefiles{lstlean.tex}
 
+% 大きさ
+% --- lstlistingsの設定 ---
+% \lstset{
+%   basicstyle=\ttfamily\small,
+%   frame=single,
+%   mathescape=true,
+%   breaklines=true,
+%   columns=fullflexible,
+%   keepspaces=true,
+%   xleftmargin=0.2em,
+%   xrightmargin=0.2em,
+%   tabsize=2,
+%   lineskip=-1pt,
+%   aboveskip=0.3em,
+%   belowskip=0.3em
+% }
+
+% --- フォントサイズの定義  ---
+% \renewcommand{\tiny}{\fontsize{10}{12}\selectfont}
+% \renewcommand{\scriptsize}{\fontsize{12}{15}\selectfont}
+% \renewcommand{\footnotesize}{\fontsize{14}{18}\selectfont}
+% \renewcommand{\small}{\fontsize{19}{23}\selectfont}
+% \renewcommand{\normalsize}{\fontsize{23}{29}\selectfont}
+% \renewcommand{\large}{\fontsize{28}{35}\selectfont}  
+% \renewcommand{\Large}{\fontsize{34}{42}\selectfont}
+% \renewcommand{\LARGE}{\fontsize{40}{50}\selectfont}
+% \renewcommand{\huge}{\fontsize{48}{60}\selectfont}
+% \renewcommand{\Huge}{\fontsize{58}{72}\selectfont}
+% \renewcommand{\veryHuge}{\fontsize{70}{88}\selectfont}
+% \renewcommand{\VeryHuge}{\fontsize{84}{105}\selectfont}
+% \renewcommand{\VERYHuge}{\fontsize{100}{125}\selectfont}
+
 % set default language
-\lstset{language=lean}
+\lstset{
+  language=lean,
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single
+  }
 % --- 以上 lstlisting の設定 ---
 
+\theoremstyle{definition} % ここから下の環境は「立体（真っ直ぐ）」になる
 \newtheorem{theorem}{定理}[section]
 \newtheorem{lemma}{補題}[section]
 \newtheorem{prop}{命題}[section]
 \newtheorem{definition}{定義}[section]
 \newtheorem{corollary}{系}[section]
 
-\title{Lean による GL(2, Q) の有限位数の決定}
-\author{北海道大学理学部数学科4年~学生番号 02220077~ 森下~善 \\指導教員 : 松下~大介}
-\date{2026 年 1 月 25 日}
+
+\title{\(Lean\) による \(GL(2, \mathbb{Q})\) の有限位数の決定}
+\author{氏名 ： 森下~善~(北海道大学理学部数学科) \quad 指導教員 ： 松下~大介}
+\date{~}
 
 \begin{document}
-
+  
 % 表紙の作成
 \maketitle
 
+\begin{multicols}{2}
+  
 \section{はじめに}
 
-本稿では, 証明支援系Leanを用いて, 有理数体上の2次一般線型群 GL(2, Q) の有限位数を決定していく.\\
-具体的には, GL(2, Q) の有限位数元は, 位数 1, 2, 3, 4, 6 のいずれかであり, 各位数に対して標準的な代表元が存在することを示す.
-元 \(g\) が有限位数元であるとは, \(g^n = I\) (単位元) となるような正の整数 \(n\) が存在するということである.
 
-
-\section{主定理}
+\section{有限位数の決定}
 
 \begin{definition}[有限位数元]~\
 
-\(G\) を群, \(I\) を \(G\) の単位元とする.
+  \(G\) を群とする.
 
-\(G\) の元 \(g\) が有限位数元であるとは, 
-ある正の整数 \(n\) に対して \(g^n = I\) となることである.
+  \(g \in G\) が \(G\) の有限位数元であるとは, \(g^n = 1\)(単位元) を満たすような
+  正の整数 \(n\) が存在することである.
 
-また, そのような最小の正の整数 \(n\) を \(g\) の位数と呼ぶ.
+  また,このような \(n\) のうち, 最小のものを \(g\) の位数という.
 
 \end{definition}
 
+以下, \(M\) を \(GL(2, \mathbb{Q})\) の有限位数元, \(n\) をその位数とする.
 
-\begin{lemma}
+\begin{definition}[最小多項式]~\
+  
+  最高次数係数が1の多項式 \(m_M(x)\) のうち,
 
-\(M\) を GL(2, Q) の有限位数元とする.
-このとき, \(M\) の固有多項式の次数は 2 以下.
+  \(m_M(M) = O\) となるもので次数が最小のものを \(M\) の最小多項式という.
 
-\begin{lstlisting}
-  lemma charpoly_deg_eq_two : (charpoly M.val).natDegree = 2 :=  -- 固有多項式の次数は2以下
-    charpoly_natDegree_eq_dim M.val
-\end{lstlisting}
-\end{lemma}
-
-
-\begin{lemma}
-
-\(M\) を GL(2, Q) の有限位数元とする.
-このとき, \(M\) の最小多項式は固有多項式を割り切る.
-
-\begin{lstlisting}
-lemma minpoly_deg_le_two : (minpoly ℚ M.val).natDegree ≤ 2 :=  -- 最小多項式の次数は2以下
-  calc
-    _ ≤ (charpoly M.val).natDegree := by
-      apply natDegree_le_of_dvd
-      · apply minpoly_dvd_charpoly M.val
-      · apply ne_zero_of_natDegree_gt
-        show 1 < (charpoly M.val).natDegree
-        rw [charpoly_deg_eq_two]
-        norm_num
-    _ = 2 := by rw [charpoly_deg_eq_two]
-\end{lstlisting}
-\end{lemma}
-
-
-\begin{lemma}
-
-\(M\) を GL(2, Q) の有限位数元とする.
-このとき, \(M\) の最小多項式の次数は 2 以下.
-
-\begin{lstlisting}
-lemma minpoly_dvd_charpoly : minpoly ℚ M.val ∣ M.val.charpoly := by -- 最小多項式は固有多項式を割り切る
-  apply dvd ℚ M.val
-  exact aeval_self_charpoly M.val
-\end{lstlisting}
-\end{lemma}
-
-
-\begin{definition}[トーシェント関数]
-
-自然数 \(n\) に対して,
-
-\[
-\varphi(n) = \# \{ k \in \mathbb{N} \mid 1 \leq k \leq n, \gcd(k,n) = 1 \}
-\]
-
-をトーシェント関数という.
-
-\begin{lstlisting}
-def totient (n : ℕ) : ℕ := Finset.card {a ∈ Finset.range n | n.Coprime a}
-\end{lstlisting}
 \end{definition}
 
+\begin{definition}[円分多項式]~\
 
-\begin{definition}[円分多項式]
-自然数 \(n\) に対して, 円分多項式 \(\Phi_n(x)\) を次で定義する.
+  複素数平面における1の原始n乗根 \(\zeta_n^k = e^{2ki\pi/n}\)(\(1 \leq k \leq n\) かつ \(gcd(k, n) = 1\))
+  のすべてを解に持つ多項式,
+  \[\Phi_n(x) := \prod_{\substack{1 \leq k \leq n\\ gcd(k, n) = 1}} (x - e^{2ki\pi / n})\]
 
-\[
-\Phi_n(x) = \prod_{\substack{1 \leq k \leq n \\ \gcd(k,n) = 1}} (x - \zeta_n^k)
-\]
+  を第n円分多項式という.
 
-ただし, \(\zeta_n\) は \(n\) 番目の原始 \(n\) 乗根である.
 \end{definition}
 
+\begin{definition}[オイラーのトーシェント関数]~\
+  
+  正の整数 \(n\) について, \(n\) 以下の正の整数のうち, \(n\) と互いに素なものの個数を
+  \(\phi(n)\) と書き, これをオイラーのトーシェント関数という. 
+  \[\phi(n) := \# \{a \mid 1 \leq a \leq n, gcd(a, n) = 1\}\]
+
+\end{definition}
 
 \begin{lemma}
 
-円分多項式の次数はトーシェント関数と等しい.
+  円分多項式の次数は, オイラーのトーシェント関数と等しい.
 
-\begin{lstlisting}
-lemma cyclotomic_deg_eq_totient (n : ℕ) :
-    (cyclotomic n ℚ).natDegree = totient n := by  -- 円分多項式の次数はトーシェント関数
-  exact natDegree_cyclotomic n ℚ
-\end{lstlisting}
+  \begin{lstlisting}
+    lemma cyclotomic_deg_eq_totient (n : ℕ) : (Φ n).natDegree = φ n :=
+      natDegree_cyclotomic n ℚ
+  \end{lstlisting}
+
 \end{lemma}
-
 
 \begin{lemma}
 
-\(M\) を GL(2, Q) の有限位数元とする.
-このとき, 円分多項式は \(M\) の最小多項式を割り切る.
+  \(M\) の最小多項式 \(m_M(x)\) は
+  \[ \Phi_1(x), \Phi_2(x), \Phi_3(x), \Phi_4(x), \Phi_6(x), \Phi_1(x)*\Phi_2(x)\] に限る.
 
 \end{lemma}
-
-
-\begin{lemma}
-
-\(n\) を \(M\) の位数とする.
-このとき, トーシェント関数 \(\varphi(n)\) は 2 以下である.
-
-\end{lemma}
-
-
-\begin{lemma}
-
-トーシェント関数 \(\varphi(n)\) が 2 以下となる自然数 \(n\) は, \(n = 1, 2, 3, 4, 6\) のいずれかである.
-
-\end{lemma}
-
 
 \begin{theorem}
 
-\(GL(2, Q)\) の有限位数元の位数は \(1, 2, 3, 4, 6\) のいずれかである.
+  \(GL(2, \mathbb{Q})\) の有限位数元が存在するならば、
+  その位数は \(1, 2, 3, 4, 6\) に限る.
 
 \end{theorem}
-
 
 \begin{theorem}
-
-\(n = 1, 2, 3, 4, 6\) に対して, \(GL(2, Q)\) の有限位数元で位数が \(n\) であるものが存在する.
-
-\end{theorem}
-
-
-\begin{theorem}
-
-\(GL(2, Q)\) の有限位数元は, 位数 \(1, 2, 3, 4, 6\) のいずれかであり, 各位数に対して標準的な代表元が存在する.
+  
+  \(n = 1, 2, 3, 4, 6\) それぞれに対して, 位数が \(n\) となるような
+  \(GL(2, \mathbb{Q})\) の元Mが存在する.
 
 \end{theorem}
-
-\begin{lstlisting}
-
-\end{lstlisting}
-
 
 \section{おわりに}
-本稿では, 証明支援系Leanを用いて, 有理数体上の2次一般線型群 GL(2, Q) の有限位数元の分類を行った.
-具体的には, GL(2, Q) の有限位数元は, 位数 1, 2, 3, 4, 6 のいずれかであり, 各位数に対して標準的な代表元が存在することを示した.
-今後の課題として, より高次元の一般線型群に対する有限位数元の分類や, 他の体上での類似の問題に取り組むことが挙げられる.
 
 \section{参考文献}
+
+\end{multicols}
 
 \end{document}
