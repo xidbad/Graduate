@@ -18,7 +18,7 @@
 \usepackage{listings}
 \usepackage{zi4}  % Leanコード表示用, 任意
 
-% 色の設定
+% --- 色の設定 ---
 \usepackage{xcolor}
 \definecolor{keywordcolor}{rgb}{0.7, 0.1, 0.1}   % red
 \definecolor{tacticcolor}{rgb}{0.0, 0.1, 0.6}    % blue
@@ -38,13 +38,13 @@
   frame=single,
   columns=fullflexible,
   keepspaces=true,
-  mathescape=true,
-  xleftmargin=0em,
-  xrightmargin=0em,
+  % mathescape=true,
+  % xleftmargin=0em,
+  % xrightmargin=0em,
   % tabsize=2,
-  lineskip=-1pt
+  lineskip=-1pt,
   % aboveskip=0.2em,
-  % belowskip=0em
+  belowskip=0em
 }
 % --- 以上 lstlisting の設定 ---
 
@@ -71,7 +71,7 @@
 \newtheorem{corollary}{系}[section]
 
 
-\title{\(Lean\) による \(GL(2, \mathbb{Q})\) の有限位数の決定}
+\title{Leanによる \(GL(2, \mathbb{Q})\) の有限位数の元に関する考察}
 \author{氏名 ： 森下~善~(北海道大学理学部数学科) \quad 指導教員 ： 松下~大介}
 \date{~}
 
@@ -88,28 +88,31 @@
   
 \section{はじめに}
 
-  本稿では, 有理数体上の2次一般線型群 \(GL(2, \mathbb{Q})\) における有限位数元の位数が
-  \(1, 2, 3, 4, 6\) に限定されることを証明支援系 \(Lean\) を用いて形式化していく.
-  証明の方針として, まず最小多項式が\(x^n - 1\) を割り切り, \(\mathbb{Q}[X]\) が一意分解整域(UFD)
+  本稿では, 有理数体上の \(2\) 次一般線型群 \(GL(2, \mathbb{Q})\) における有限位数の元の位数が
+  \(1, 2, 3, 4, 6\) に限定されることを証明支援系Leanを用いて形式化していく.
+  証明の方針として, まず最小多項式が \(x^n - 1\) を割り切り, \(\mathbb{Q}[X]\) が一意分解整域(UFD)
   であることから, 既約因子が円分多項式に帰着されることを示す.
   そして次数の制約に基づき, 位数を絞り込んでいく.
 
 \section{有限位数の決定}
 
-\begin{definition}[有限位数元]
-  \(G\) を群とする.
+\begin{definition}[有限位数元]\
 
+  \(G\) を群とする.
   \(g \in G\) が \(G\) の有限位数元であるとは, \(g^n = 1_G\)(単位元) を満たす
   正の整数 \(n\) が存在することである.
   またこのような \(n\) のうち, 最小のものを \(g\) の位数という.
+
 \end{definition}
 
 以下, \(M\) を \(GL(2, \mathbb{Q})\) の有限位数元, \(n\) をその位数とする.
 
 
-\begin{definition}[最小多項式]
-  最高次数係数が1である(モニック)多項式 \(m_M(x)\) のうち,
+\begin{definition}[最小多項式]\
+
+  最高次数係数が \(1\) である(モニック)多項式 \(m_M(x)\) のうち,
   \(m_M(M) = O\) となるもので次数が最小のものを \(M\) の最小多項式という.
+
 \end{definition}
 
 
@@ -129,15 +132,15 @@
   最小多項式 \(m_M(x)\) は, \(x^n - 1\) を割り切る.
 
   \begin{proof}
-    \(M^n = I\) より, \(x^n - 1\) が \(M\) を根に持つことから示せる.
+    \(M^n = I\) より, \((x^n - 1)(M) = O\) が成り立つことと, 最小多項式の定義から示せる.
   \end{proof}
 
 \end{lemma}
 
 
-\begin{definition}[円分多項式]
+\begin{definition}[円分多項式]\
 
-  複素数平面における \(1\) の原始 \(n\) 乗根 \(\zeta_n^k = e^{\frac{2ki\pi}{n}}\)(\(1 \leq k \leq n\) かつ \(gcd(k, n) = 1\))
+  複素数平面における \(1\) の原始 \(n\) 乗根 \(\zeta_n^k = e^{\frac{2ki\pi}{n}}\)(\(1 \leq k \leq n\) かつ \(gcd(k, n) = 1\) (\(k \in \mathbb{Z}\)))
   のすべてを解に持つ多項式,
   \[\Phi_n(x) := \prod_{\substack{1 \leq k \leq n\\ gcd(k, n) = 1}} (x - \zeta_n^k)\]
   を第 \(n\) 円分多項式という.
@@ -146,11 +149,11 @@
 
 
 \begin{lemma}
-  
+
   \(x^n - 1 = \prod_{i \mid n} \Phi_i(x)\).
 
   \begin{proof}
-    \(x^n - 1 = \prod_{1 \leq k \leq n} (x - \zeta_n^k)\) と分解でき,
+    \(x^n - 1 = \prod_{1 \leq k \leq n} (x - \zeta_n^k)\) と分解でき, 
     \(i = \frac{n}{gcd(k, n)}\) とおくと, \(\zeta_n^k\) は \(1\) の原始 \(i\) 乗根.
     \(k\) が \(1\) から \(n\) まで動くとき, \(i\) は \(n\) の約数全体の値をとる.
   \end{proof}
@@ -164,7 +167,8 @@
   第 \(i\) 円分多項式 \(\Phi_i(x)\) と一致する.
 
   \begin{lstlisting}
-    lemma normalizedfactor_eq_cyclotomic (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) (f : ℚ[X]) (fmon : Monic f) (firr : Irreducible f) (fdvd : f ∣ minpoly ℚ M.val) : ∃ i ∈ n.divisors, f = Φ i := by
+    lemma normalizedfactor_eq_cyclotomic (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) (f : ℚ[X]) (fmon : Monic f) (firr : Irreducible f) (fdvd : f ∣ minpoly ℚ M.val) :
+    ∃ i ∈ n.divisors, f = Φ i := by
   have npos : 0 < n := by simp only [h', orderOf_pos_iff, h]
   have hdvd : f ∣ X^n - 1 := dvd_trans fdvd (minpoly_dvd_X_pow_sub_one M h')
   rw [← prod_cyclotomic_eq_X_pow_sub_one npos] at hdvd
@@ -184,7 +188,7 @@
   \begin{proof}
     \(f\) を \(m_M(x)\) のモニックな既約因子とする.
     補題2.2, 2.4より, \(f \mid \prod_{i \mid n} \Phi_i(x)\) が成り立つ.
-    多項式環 \(\mathbb{Q}[X]\) はUFD(一意分解整域)で, \(f\) が既約であることから, 
+    多項式環 \(\mathbb{Q}[X]\) はUFD(一意分解整域)で, \(f\) が既約であることから,
     ある \(n\) の約数 \(i\) について \(f \mid \Phi_i(x)\).
     \(f, \Phi_i(x)\) はともに既約より, ある単元 \(u \in \mathbb{Q}[X]^\times\) を用いて,
     \(\Phi_i(x) = f * u\) と書ける.
@@ -194,11 +198,11 @@
 \end{lemma}
 
 
-\begin{definition}[オイラーのトーシェント関数]~\
+\begin{definition}[オイラーのトーシェント関数]\
 
   正の整数 \(n\) について, \(n\) 以下の正の整数のうち, \(n\) と互いに素であるものの個数を
   \(\phi(n)\) と書き, これをオイラーのトーシェント関数という. 
-  \[\phi(n) := \# \{a \mid 1 \leq a \leq n, gcd(a, n) = 1\}\]
+  \[\phi(n) := \# \{a \mid 1 \leq a \leq n, gcd(a, n) = 1\}.\]
 
 \end{definition}
 
@@ -219,7 +223,6 @@
   \(\phi(n) \leq 2 \Leftrightarrow n \in \{1, 2, 3, 4, 6\}\).
 
   \begin{proof}
-    
     \(p_j\) (\(1 \leq j \leq r\)) を相異なる素数とし, \(n = \prod_{1 \leq j \leq r} p_j^{n_j}\) と素因数分解する.
     このとき, \(\phi(n) = \phi(\prod_{1 \leq j \leq r} p_j^{n_j}) = \prod_{1 \leq j \leq r} \phi(p_j^{n_j})
     = \prod_{1 \leq i \leq n} p_i^{n_i-1}(p_i-1)\) が成り立つ.
@@ -236,10 +239,9 @@
 \begin{lemma}
 
   最小多項式のモニックな既約因子は
-  \[ \Phi_1(x), \Phi_2(x), \Phi_3(x), \Phi_4(x), \Phi_6(x)\] に限る.
+  \[\Phi_1(x), \Phi_2(x), \Phi_3(x), \Phi_4(x), \Phi_6(x) \quad \text{に限る.}\]
 
   \begin{proof}
-    
     補題2.1, 2.4より, 最小多項式の既約因子である円分多項式の次数は \(2\) 以下.
     補題2.5, 2.6より, \(i\) は \(1, 2, 3, 4, 6\) に限る.
   \end{proof}
@@ -252,8 +254,7 @@
   最小多項式 \(m_M(x)\) は重解を持たない.
 
   \begin{proof}
-    
-    補題2.2より,最小多項式は\(x^n - 1\) を割り切り, \(x^n - 1\) は複素数範囲で
+    補題2.2より, 最小多項式は \(x^n - 1\) を割り切り, \(x^n - 1\) は複素数範囲で
     相異なる \(n\) 個の解を持つ(重解を持たない)ことから示せる.
   \end{proof}
 \end{lemma}
@@ -262,7 +263,7 @@
 \begin{lemma}
 
   \(M\) の最小多項式 \(m_M(x)\) は
-  \[ \Phi_1(x), \Phi_2(x), \Phi_3(x), \Phi_4(x), \Phi_6(x), \Phi_1(x)\Phi_2(x)\] に限る.
+  \[\Phi_1(x), \Phi_2(x), \Phi_3(x), \Phi_4(x), \Phi_6(x), \Phi_1(x)\Phi_2(x) \quad \text{に限る.}\]
 
   \begin{lstlisting}
     lemma minpoly_class (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) : minpoly ℚ M.val ∈ ({Φ 1, Φ 2, Φ 3, Φ 4, Φ 6, (Φ 1)*(Φ 2)} : Finset ℚ[X]) := by
@@ -365,18 +366,20 @@
   \begin{proof}
     補題2.7より, 最小多項式 \(m_M(x)\) のモニックな既約因子は
     \(\Phi_1(x), \Phi_2(x), \Phi_3(x), \Phi_4(x), \Phi_6(x)\)
-    に限られ, 補題2.8より, 同じ円分多項式は複数もたない.
-    補題2.2より, 考えられる最小多項式は \(\Phi_1(x), \Phi_2(x), \Phi_3(x), \Phi_4(x), \Phi_6(x), \Phi_1(x)*\Phi_2(x)\)
+    に限られ, 補題2.8より, 
+    同一の円分多項式は重複して現れない.
+    よって補題2.1から, 考えられる最小多項式は \(\Phi_1(x), \Phi_2(x), \Phi_3(x), \Phi_4(x), \Phi_6(x), \Phi_1(x)\Phi_2(x)\)
     に限られる.
   \end{proof}
+
 \end{lemma}
+
 
 \begin{theorem}
 
-  \(GL(2, \mathbb{Q})\) の有限位数元の位数は \(1, 2, 3, 4, 6\) に限る.
+  \(GL(2, \mathbb{Q})\) の有限位数の元の位数は \(1, 2, 3, 4, 6\) に限る.
 
   \begin{proof}
-    
     \(m_M(x) = \Phi_i(x)\) (\(i = 1, 2, 3, 4, 6\)) のとき,
     \(m_M(M) = O\) より, \(\Phi_i(M) = O\).
     \(\Phi_i(x) \mid x^i - 1\) から, \(M^i = I\).
@@ -384,8 +387,8 @@
   
     \(m_M(x) = \Phi_1(x)\Phi_2(x)\) のとき, \(m_M(x) = x^2 - 1\) より, \(M^2 = I\).
     また, \(m_M(x) \neq x-1\) より, \((x - 1)(M) \neq O\).
-
   \end{proof}
+
 \end{theorem}
 
 \begin{theorem}
@@ -408,7 +411,7 @@
 
   以上で形式化を終えたわけだが, 掲載したコードは完成形のほんの一部である.
   形式化を困難にしている要因は, 一見自明に思える事実の証明や場合分けの多さにある.
-  すべてのパターンを抜け目なく網羅できる点は, \(Lean\) の利点でもあり, 大変な部分でもある.
+  すべてのパターンを抜け目なく網羅できる点は, Leanの利点でもあり, 大変な部分でもある.
   今回は有理数体上で考えたが, 実数体や複素数体へ拡張すると, 代数的構造はより複雑になり,
   さらなる困難が予想される.
 
