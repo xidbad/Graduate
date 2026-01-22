@@ -36,6 +36,7 @@
   basicstyle=\ttfamily\small,
   breaklines=true,
   frame=single,
+  framesep=0pt,
   columns=fullflexible,
   keepspaces=true,
   % mathescape=true,
@@ -63,6 +64,9 @@
 \renewcommand{\VeryHuge}{\fontsize{76}{95}\selectfont}
 \renewcommand{\VERYHuge}{\fontsize{90}{112}\selectfont}
 
+% --- QRコード ---
+\usepackage{qrcode}
+
 \theoremstyle{definition}
 \newtheorem{theorem}{定理}[section]
 \newtheorem{lemma}{補題}[section]
@@ -77,7 +81,7 @@
 
 % 線の太さを指定（例: 0.4pt が標準的な細線）
 \setlength{\columnseprule}{0.4pt}
-\setlength{\columnsep}{30pt}
+\setlength{\columnsep}{25pt}
 
 \begin{document}
 
@@ -99,7 +103,7 @@
 \begin{definition}[有限位数元]\
 
   \(G\) を群とする.
-  \(g \in G\) が \(G\) の有限位数元であるとは, \(g^n = 1_G\)(単位元) を満たす
+  \(g \in G\) が \(G\) の有限位数元であるとは, \(g^n = 1_G\)(単位元)を満たす
   正の整数 \(n\) が存在することである.
   またこのような \(n\) のうち, 最小のものを \(g\) の位数という.
 
@@ -150,7 +154,7 @@
 
 \begin{lemma}
 
-  \(x^n - 1 = \prod_{i \mid n} \Phi_i(x)\).
+  \(x^n - 1 = \prod_{i \mid n} \Phi_i(x)\) が成り立つ.
 
   \begin{proof}
     \(x^n - 1 = \prod_{1 \leq k \leq n} (x - \zeta_n^k)\) と分解でき, 
@@ -163,36 +167,36 @@
 
 \begin{lemma}
 
-  最小多項式 \(m_M(x)\) のモニックな既約因子はある \(n\) の正の約数 \(i\) に対する
+  最小多項式 \(m_M(x)\) のモニックな既約因子は, ある \(n\) の正の約数 \(i\) に対する
   第 \(i\) 円分多項式 \(\Phi_i(x)\) と一致する.
 
   \begin{lstlisting}
-    lemma normalizedfactor_eq_cyclotomic (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) (f : ℚ[X]) (fmon : Monic f) (firr : Irreducible f) (fdvd : f ∣ minpoly ℚ M.val) :
-    ∃ i ∈ n.divisors, f = Φ i := by
-  have npos : 0 < n := by simp only [h', orderOf_pos_iff, h]
-  have hdvd : f ∣ X^n - 1 := dvd_trans fdvd (minpoly_dvd_X_pow_sub_one M h')
-  rw [← prod_cyclotomic_eq_X_pow_sub_one npos] at hdvd
-  have h₁ : ∃ i ∈ n.divisors, f ∣ Φ i := by
-    rw [← (prime firr).dvd_finset_prod_iff]; exact hdvd
-  obtain ⟨i, imem, hdvd'⟩ := h₁
-  have h₂ : Irreducible (Φ i) :=
-    cyclotomic.irreducible_rat (pos_of_mem_divisors imem)
-  have h₃ : Associated f (Φ i) := associated_of_dvd firr h₂ hdvd'; use i, imem; rcases h₃ with ⟨u, feq⟩
-  have ueq : u.val = 1 := by
-    have h1 : Monic (Φ i) := cyclotomic.monic i ℚ
-    rw [← feq] at h1
-    have h2 : Monic u.val := Monic.of_mul_monic_left fmon h1
-    rw [← Monic.isUnit_iff h2]; exact u.isUnit
-  rw [← feq, ueq, mul_one]  \end{lstlisting}
+  lemma normalizedfactor_eq_cyclotomic (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) (f : ℚ[X]) (fmon : Monic f) (firr : Irreducible f) (fdvd : f ∣ minpoly ℚ M.val) :
+      ∃ i ∈ n.divisors, f = Φ i := by
+    have npos : 0 < n := by simp only [h', orderOf_pos_iff, h]
+    have hdvd : f ∣ X^n - 1 := dvd_trans fdvd (minpoly_dvd_X_pow_sub_one M h')
+    rw [← prod_cyclotomic_eq_X_pow_sub_one npos] at hdvd
+    have h₁ : ∃ i ∈ n.divisors, f ∣ Φ i := by
+      rw [← (prime firr).dvd_finset_prod_iff]; exact hdvd
+    obtain ⟨i, imem, hdvd'⟩ := h₁
+    have h₂ : Irreducible (Φ i) :=
+      cyclotomic.irreducible_rat (pos_of_mem_divisors imem)
+    have h₃ : Associated f (Φ i) := associated_of_dvd firr h₂ hdvd'; use i, imem; rcases h₃ with ⟨u, feq⟩
+    have ueq : u.val = 1 := by
+      have h1 : Monic (Φ i) := cyclotomic.monic i ℚ
+      rw [← feq] at h1
+      have h2 : Monic u.val := Monic.of_mul_monic_left fmon h1
+      rw [← Monic.isUnit_iff h2]; exact u.isUnit
+    rw [← feq, ueq, mul_one]  \end{lstlisting}
 
   \begin{proof}
     \(f\) を \(m_M(x)\) のモニックな既約因子とする.
     補題2.2, 2.4より, \(f \mid \prod_{i \mid n} \Phi_i(x)\) が成り立つ.
-    多項式環 \(\mathbb{Q}[X]\) はUFD(一意分解整域)で, \(f\) が既約であることから,
-    ある \(n\) の約数 \(i\) について \(f \mid \Phi_i(x)\).
+    \(\mathbb{Q}[X]\) はUFDより, 既約元は素元であるから,
+    ある \(n\) の約数 \(i\) について, \(f \mid \Phi_i(x)\).
     \(f, \Phi_i(x)\) はともに既約より, ある単元 \(u \in \mathbb{Q}[X]^\times\) を用いて,
     \(\Phi_i(x) = f * u\) と書ける.
-    \(f, \Phi_i(x)\) はともにモニックであるため, \(u = 1\) が示される.    
+    \(f, \Phi_i(x)\) はともにモニックであるため, \(u = 1\) が示される.
   \end{proof}
 
 \end{lemma}
@@ -202,7 +206,7 @@
 
   正の整数 \(n\) について, \(n\) 以下の正の整数のうち, \(n\) と互いに素であるものの個数を
   \(\phi(n)\) と書き, これをオイラーのトーシェント関数という. 
-  \[\phi(n) := \# \{a \mid 1 \leq a \leq n, gcd(a, n) = 1\}.\]
+  \[\phi(n) := \# \{a \in \mathbb{N} \mid 1 \leq a \leq n, gcd(a, n) = 1\}.\]
 
 \end{definition}
 
@@ -225,11 +229,12 @@
   \begin{proof}
     \(p_j\) (\(1 \leq j \leq r\)) を相異なる素数とし, \(n = \prod_{1 \leq j \leq r} p_j^{n_j}\) と素因数分解する.
     このとき, \(\phi(n) = \phi(\prod_{1 \leq j \leq r} p_j^{n_j}) = \prod_{1 \leq j \leq r} \phi(p_j^{n_j})
-    = \prod_{1 \leq i \leq n} p_i^{n_i-1}(p_i-1)\) が成り立つ.
+    = \prod_{1 \leq j \leq r} p_j^{n_j-1}(p_j-1)\) が成り立つ.
     \(p_j \geq 5\) なる素因数が存在すれば, \(\phi(n) \geq 4\) となるため不適.
     よって, \(n\) は \(2\) と \(3\) 以外の素因数をもたない. \(n = 2^a3^b\) (\(a, b \geq 0\)) とおくと,
-    \(\phi(n) = 2^a3^{b-1} \leq 2 \Leftrightarrow (a, b) = (0, 0), (1, 0), (0, 1), (2, 0), (1, 1)\)
-    (\(b = 0\) の場合は, \(\phi(3^0) = 1\) とする).
+    \(a \geq 3\) のとき, \(\phi(n) \geq 4\), \(b \geq 2\) のとき, \(\phi(n) \geq 3\) より,
+    \(a \leq 2 ~\text{かつ}~ b \leq 1\).
+    これらを考慮すると, 条件を満たすのは \((a, b) = (0, 0), (1, 0), (0, 1), (2, 0), (1, 1)\).
     したがって, \(n = 1, 2, 3, 4, 6\).
   \end{proof}
 
@@ -257,6 +262,7 @@
     補題2.2より, 最小多項式は \(x^n - 1\) を割り切り, \(x^n - 1\) は複素数範囲で
     相異なる \(n\) 個の解を持つ(重解を持たない)ことから示せる.
   \end{proof}
+
 \end{lemma}
 
 
@@ -266,102 +272,102 @@
   \[\Phi_1(x), \Phi_2(x), \Phi_3(x), \Phi_4(x), \Phi_6(x), \Phi_1(x)\Phi_2(x) \quad \text{に限る.}\]
 
   \begin{lstlisting}
-    lemma minpoly_class (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) : minpoly ℚ M.val ∈ ({Φ 1, Φ 2, Φ 3, Φ 4, Φ 6, (Φ 1)*(Φ 2)} : Finset ℚ[X]) := by
-  obtain ⟨f, fmon, firr, fdvd⟩ := exist_normalizefactor M
-  have h₀ := normalizedfactor_class M h h' f fmon firr fdvd
-  rcases fdvd with ⟨g, fgeq⟩
-  have h₁ := monic (isIntegral M.val)
-  have gmon : Monic g := by
-    rw [fgeq] at h₁; apply Monic.of_mul_monic_left fmon h₁
-  have gdvd : g ∣ minpoly ℚ M.val := by
-    rw [fgeq]; exact dvd_mul_left g f
-  have h₃ : (minpoly ℚ M.val).natDegree = f.natDegree + g.natDegree := by rw [fgeq]; apply natDegree_mul (Monic.ne_zero fmon) (Monic.ne_zero gmon)
-  have h₄ := minpoly_deg_le_two M
-  have h₅ := minpoly_squarefree M h h'
-  interval_cases h₆ : (minpoly ℚ M.val).natDegree
-  -- (minpoly ℚ M.val).natDegree = 0
-  · have := natDegree_pos (isIntegral M.val)
-    rw [h₆] at this; contradiction
-  -- (minpoly ℚ M.val).natDegree = 1
-  · have gdeg : g.natDegree = 0 := by
-      have : 1 ≤ f.natDegree := by
-        simp only [mem_insert, mem_singleton] at h₀
-        rcases h₀ with (rfl | rfl | rfl | rfl | rfl)
-        <;> rw [cyclotomic_deg_eq_totient] <;> decide
-      linarith
-    have geq : g = 1 := eq_one_of_monic_natDegree_zero gmon gdeg
-    rw [fgeq, geq, mul_one]
-    simp only [mem_insert, mem_singleton] at h₀
-    rcases h₀ with (rfl | rfl | rfl | rfl | rfl) <;> simp only [mem_insert, mem_singleton, true_or, or_true]
-  -- (minpoly ℚ M.val).natDegree = 2
-  · simp only [mem_insert, mem_singleton] at h₀
-    rcases h₀ with (h1 | h1 | h1 | h1 | h1)
-    -- f = Φ 1
-    · have fdeg : f.natDegree = 1 := by rw [h1, cyclotomic_one]; compute_degree; decide
-      have gdeg : g.natDegree = 1 := by rw [fdeg] at h₃; linarith
-      have girr : Irreducible g := by
-        rw [← degree_eq_iff_natDegree_eq_of_pos (by decide), cast_one] at gdeg
-        exact irreducible_of_degree_eq_one gdeg
-      simp only [mem_insert, mem_singleton]; right; right; right; right; right; rw [fgeq, h1]
-      obtain h2 := normalizedfactor_class M h h' g gmon girr gdvd
-      simp only [mem_insert, mem_singleton] at h2
-      rcases h2 with (h3 | h3 | h3 | h3 | h3)
-      -- g = Φ 1
-      · rw [h3, ← h1] at fgeq
-        rw [squarefree_iff_no_irreducibles (ne_zero_of_finite ℚ M.val)] at h₅
-        specialize h₅ f firr; rw [fgeq] at h₅; contrapose h₅; exact dvd_refl (f * f)
-      -- g = Φ 2
-      · rw [h3, cyclotomic_one, cyclotomic_two]
-      -- g = Φ 3
-      · rw [h3] at gdeg
-        have : (X^2 + X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
-        rw [cyclotomic_three, this] at gdeg; contradiction
-      -- g = Φ 4
-      · rw [h3] at gdeg
-        have : (X^2 + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
-        rw [cyclotomic_four, this] at gdeg; contradiction
-      -- g = Φ 6
-      · rw [h3] at gdeg
-        have : (X^2 - X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
-        rw [cyclotomic_six, this] at gdeg; contradiction
-    -- f = Φ 2
-    · have fdeg : f.natDegree = 1 := by rw [h1, cyclotomic_two]; compute_degree; decide
-      have gdeg : g.natDegree = 1 := by rw [fdeg] at h₃; linarith
-      have girr : Irreducible g := by rw [← degree_eq_iff_natDegree_eq_of_pos (by decide), cast_one] at gdeg; exact irreducible_of_degree_eq_one gdeg
-      simp only [mem_insert, mem_singleton]; right; right; right; right; right; rw [fgeq, h1]
-      obtain h2 := normalizedfactor_class M h h' g gmon girr gdvd
-      simp only [mem_insert, mem_singleton] at h2
-      rcases h2 with (h3 | h3 | h3 | h3 | h3)
-      -- g = Φ 1
-      · rw [h3, mul_comm]
-      -- g = Φ 2
-      · rw [h3, ← h1] at fgeq
-        rw [squarefree_iff_no_irreducibles (ne_zero_of_finite ℚ M.val)] at h₅
-        specialize h₅ f firr; rw [fgeq] at h₅; contrapose h₅; exact dvd_refl (f * f)
-      -- g = Φ 3
-      · have : (X^2 + X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
-        rw [h3, cyclotomic_three, this] at gdeg; contradiction
-      -- g = Φ 4
-      · have : (X^2 + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
-        rw [h3, cyclotomic_four, this] at gdeg; contradiction
-      -- g = Φ 6
-      · have : (X^2 - X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
-        rw [h3, cyclotomic_six, this] at gdeg; contradiction
-    -- f = Φ 3
-    · have fdeg : f.natDegree = 2 := by rw [h1, cyclotomic_three]; compute_degree; decide
-      have gdeg : g.natDegree = 0 := by rw [fdeg] at h₃; linarith
+  lemma minpoly_class (h : IsOfFinOrder M.val) (h' : n = orderOf M.val) : minpoly ℚ M.val ∈ ({Φ 1, Φ 2, Φ 3, Φ 4, Φ 6, (Φ 1)*(Φ 2)} : Finset ℚ[X]) := by
+    obtain ⟨f, fmon, firr, fdvd⟩ := exist_normalizefactor M
+    have h₀ := normalizedfactor_class M h h' f fmon firr fdvd
+    rcases fdvd with ⟨g, fgeq⟩
+    have h₁ := monic (isIntegral M.val)
+    have gmon : Monic g := by
+      rw [fgeq] at h₁; apply Monic.of_mul_monic_left fmon h₁
+    have gdvd : g ∣ minpoly ℚ M.val := by
+      rw [fgeq]; exact dvd_mul_left g f
+    have h₃ : (minpoly ℚ M.val).natDegree = f.natDegree + g.natDegree := by rw [fgeq]; apply natDegree_mul (Monic.ne_zero fmon) (Monic.ne_zero gmon)
+    have h₄ := minpoly_deg_le_two M
+    have h₅ := minpoly_squarefree M h h'
+    interval_cases h₆ : (minpoly ℚ M.val).natDegree
+    -- (minpoly ℚ M.val).natDegree = 0
+    · have := natDegree_pos (isIntegral M.val)
+      rw [h₆] at this; contradiction
+    -- (minpoly ℚ M.val).natDegree = 1
+    · have gdeg : g.natDegree = 0 := by
+        have : 1 ≤ f.natDegree := by
+          simp only [mem_insert, mem_singleton] at h₀
+          rcases h₀ with (rfl | rfl | rfl | rfl | rfl)
+          <;> rw [cyclotomic_deg_eq_totient] <;> decide
+        linarith
       have geq : g = 1 := eq_one_of_monic_natDegree_zero gmon gdeg
-      rw [fgeq, geq, mul_one, h1]; simp only [mem_insert, mem_singleton, true_or, or_true]
-    -- f = Φ 4
-    · have fdeg : f.natDegree = 2 := by rw [h1, cyclotomic_four]; compute_degree; decide
-      have gdeg : g.natDegree = 0 := by rw [fdeg] at h₃; linarith
-      have geq : g = 1 := eq_one_of_monic_natDegree_zero gmon gdeg
-      rw [fgeq, geq, mul_one, h1]; simp only [mem_insert, mem_singleton, true_or, or_true]
-    -- f = Φ 6
-    · have fdeg : f.natDegree = 2 := by rw [h1, cyclotomic_six]; compute_degree; decide
-      have gdeg : g.natDegree = 0 := by rw [fdeg] at h₃; linarith
-      have geq : g = 1 := eq_one_of_monic_natDegree_zero gmon gdeg
-      rw [fgeq, geq, mul_one, h1]; simp only [mem_insert, mem_singleton, true_or, or_true]  \end{lstlisting}
+      rw [fgeq, geq, mul_one]
+      simp only [mem_insert, mem_singleton] at h₀
+      rcases h₀ with (rfl | rfl | rfl | rfl | rfl) <;> simp only [mem_insert, mem_singleton, true_or, or_true]
+    -- (minpoly ℚ M.val).natDegree = 2
+    · simp only [mem_insert, mem_singleton] at h₀
+      rcases h₀ with (h1 | h1 | h1 | h1 | h1)
+      -- f = Φ 1
+      · have fdeg : f.natDegree = 1 := by rw [h1, cyclotomic_one]; compute_degree; decide
+        have gdeg : g.natDegree = 1 := by rw [fdeg] at h₃; linarith
+        have girr : Irreducible g := by
+          rw [← degree_eq_iff_natDegree_eq_of_pos (by decide), cast_one] at gdeg
+          exact irreducible_of_degree_eq_one gdeg
+        simp only [mem_insert, mem_singleton]; right; right; right; right; right; rw [fgeq, h1]
+        obtain h2 := normalizedfactor_class M h h' g gmon girr gdvd
+        simp only [mem_insert, mem_singleton] at h2
+        rcases h2 with (h3 | h3 | h3 | h3 | h3)
+        -- g = Φ 1
+        · rw [h3, ← h1] at fgeq
+          rw [squarefree_iff_no_irreducibles (ne_zero_of_finite ℚ M.val)] at h₅
+          specialize h₅ f firr; rw [fgeq] at h₅; contrapose h₅; exact dvd_refl (f * f)
+        -- g = Φ 2
+        · rw [h3, cyclotomic_one, cyclotomic_two]
+        -- g = Φ 3
+        · rw [h3] at gdeg
+          have : (X^2 + X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+          rw [cyclotomic_three, this] at gdeg; contradiction
+        -- g = Φ 4
+        · rw [h3] at gdeg
+          have : (X^2 + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+          rw [cyclotomic_four, this] at gdeg; contradiction
+        -- g = Φ 6
+        · rw [h3] at gdeg
+          have : (X^2 - X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+          rw [cyclotomic_six, this] at gdeg; contradiction
+      -- f = Φ 2
+      · have fdeg : f.natDegree = 1 := by rw [h1, cyclotomic_two]; compute_degree; decide
+        have gdeg : g.natDegree = 1 := by rw [fdeg] at h₃; linarith
+        have girr : Irreducible g := by rw [← degree_eq_iff_natDegree_eq_of_pos (by decide), cast_one] at gdeg; exact irreducible_of_degree_eq_one gdeg
+        simp only [mem_insert, mem_singleton]; right; right; right; right; right; rw [fgeq, h1]
+        obtain h2 := normalizedfactor_class M h h' g gmon girr gdvd
+        simp only [mem_insert, mem_singleton] at h2
+        rcases h2 with (h3 | h3 | h3 | h3 | h3)
+        -- g = Φ 1
+        · rw [h3, mul_comm]
+        -- g = Φ 2
+        · rw [h3, ← h1] at fgeq
+          rw [squarefree_iff_no_irreducibles (ne_zero_of_finite ℚ M.val)] at h₅
+          specialize h₅ f firr; rw [fgeq] at h₅; contrapose h₅; exact dvd_refl (f * f)
+        -- g = Φ 3
+        · have : (X^2 + X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+          rw [h3, cyclotomic_three, this] at gdeg; contradiction
+        -- g = Φ 4
+        · have : (X^2 + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+          rw [h3, cyclotomic_four, this] at gdeg; contradiction
+        -- g = Φ 6
+        · have : (X^2 - X + 1 : ℚ[X]).natDegree = 2 := by compute_degree; decide
+          rw [h3, cyclotomic_six, this] at gdeg; contradiction
+      -- f = Φ 3
+      · have fdeg : f.natDegree = 2 := by rw [h1, cyclotomic_three]; compute_degree; decide
+        have gdeg : g.natDegree = 0 := by rw [fdeg] at h₃; linarith
+        have geq : g = 1 := eq_one_of_monic_natDegree_zero gmon gdeg
+        rw [fgeq, geq, mul_one, h1]; simp only [mem_insert, mem_singleton, true_or, or_true]
+      -- f = Φ 4
+      · have fdeg : f.natDegree = 2 := by rw [h1, cyclotomic_four]; compute_degree; decide
+        have gdeg : g.natDegree = 0 := by rw [fdeg] at h₃; linarith
+        have geq : g = 1 := eq_one_of_monic_natDegree_zero gmon gdeg
+        rw [fgeq, geq, mul_one, h1]; simp only [mem_insert, mem_singleton, true_or, or_true]
+      -- f = Φ 6
+      · have fdeg : f.natDegree = 2 := by rw [h1, cyclotomic_six]; compute_degree; decide
+        have gdeg : g.natDegree = 0 := by rw [fdeg] at h₃; linarith
+        have geq : g = 1 := eq_one_of_monic_natDegree_zero gmon gdeg
+        rw [fgeq, geq, mul_one, h1]; simp only [mem_insert, mem_singleton, true_or, or_true]  \end{lstlisting}
 
   \begin{proof}
     補題2.7より, 最小多項式 \(m_M(x)\) のモニックな既約因子は
@@ -402,18 +408,21 @@
     \(\left(\begin{smallmatrix} 0 & -1 \\ 1 & -1 \end{smallmatrix} \right)\) は位数3の元,
     \(\left(\begin{smallmatrix} 0 & 1 \\ -1 & 0 \end{smallmatrix} \right)\) は位数4の元,
     \(\left(\begin{smallmatrix} 0 & -1 \\ 1 & 1 \end{smallmatrix} \right)\) は位数6の元であり,
-    これらの行列式は \{\(-1, 1\)\}.
+    これらの行列式は \{\(-1, 1\)\} より, 正則.
   \end{proof}
 
 \end{theorem}
 
 \section{おわりに}
 
-  以上で形式化を終えたわけだが, 掲載したコードは完成形のほんの一部である.
-  形式化を困難にしている要因は, 一見自明に思える事実の証明や場合分けの多さにある.
-  すべてのパターンを抜け目なく網羅できる点は, Leanの利点でもあり, 大変な部分でもある.
-  今回は有理数体上で考えたが, 実数体や複素数体へ拡張すると, 代数的構造はより複雑になり,
+  以上で形式化を終えたが, 掲載したコードは完成形のほんの一部に過ぎない.
+  形式化を困難にしている要因は, 一見自明に思える事実の証明や場合分けの膨大さにある.
+  すべてのパターンを漏れなく網羅できる点は, Leanを用いる利点でもあり, 多大な労力を要する部分でもある.
+  今回は有理数体上で考えたが, 実数体や複素数体へと拡張すれば, 代数的構造はより複雑になり,
   さらなる困難が予想される.
+
+  {\footnotesize こちらはコードの完成形が掲載されているGithubページである. \quad}
+  \qrcode[height=1.3cm]{https://github.com/xidbad/Graduate/blob/main/project/project.lean}
 
 \end{multicols}
 

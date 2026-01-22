@@ -115,7 +115,9 @@ lemma totient_eq_two (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : n ∈ ({3, 4, 6} 
   · have h₁ : φ (2 ^ a) ∣ 2 := by nth_rw 2 [← h']; apply dvd_mul_right
     have h₂ : φ (2 ^ a) ≤ 2 := le_of_dvd (by decide) h₁
     interval_cases h₃ : φ (2 ^ a)
+    -- φ (2^a) = 0
     · linarith
+    -- φ (2^a) = 1
     · rw [totient_eq_one_iff] at h₃
       rw [one_mul] at h'
       have bneq : b ≠ 0 := by
@@ -127,10 +129,14 @@ lemma totient_eq_two (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : n ∈ ({3, 4, 6} 
         · decide
         · exact pos_of_ne_zero bneq
       rcases h₃ with one | two
+      -- 2^a = 1
       · rw [n_exist, one, one_mul, hb, pow_one]; decide
+      -- 2^a = 2
       · rw [n_exist, two, hb, pow_one]; decide
+    -- φ (2^a) = 2
     · rw [mul_eq_left (by decide), totient_eq_one_iff] at h'
       rcases h' with one | two
+      -- 3^b = 1
       · rw [one, mul_one] at n_exist
         have ha : a = 2 := by
           rw [totient_prime_pow] at h₃
@@ -141,6 +147,7 @@ lemma totient_eq_two (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : n ∈ ({3, 4, 6} 
               rw [this, pow_zero, totient_one] at h₃; linarith
             apply pos_of_ne_zero aneq
         rw [n_exist, ha]; decide
+      -- 3^b = 2
       · have hb : b = 0 ∨ b ≥ 1 := by omega
         obtain zero | one := hb
         · rw [zero, pow_zero] at two; linarith
