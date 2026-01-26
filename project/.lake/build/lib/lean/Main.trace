@@ -1,0 +1,26 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"o": ["e23e726248eba994.olean"],
+  "i": "c4b92cebd3b2f7a0.ilean",
+  "c": "a5e92cb138828ba3.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\Cli\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\lib\\lean c:\\Users\\zen morishita\\.elan\\toolchains\\leanprover--lean4---v4.27.0\\bin\\lean.exe C:\\Users\\Lean\\Graduate\\project\\Main.lean -o C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\lib\\lean\\Main.olean -i C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\lib\\lean\\Main.ilean -c C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\ir\\Main.c --setup C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\ir\\Main.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Main:deps",
+   [["deps",
+     [["Main/Main:extraDep", [["@Main:extraDep", "00000000000006bb"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit db93fe1608548721853390a10cd40580fe7d22ae",
+   "9a2be90fd35343e5"],
+  ["C:\\Users\\Lean\\Graduate\\project\\Main.lean", "12ec139fcf4c6694"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "b2f6f207435fda99"}

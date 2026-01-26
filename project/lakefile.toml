@@ -1,13 +1,13 @@
-name = "project"
+name = "Main"
 version = "0.1.0"
-defaultTargets = ["project"]
+defaultTargets = ["Main"]
 
 # [[lean_exe]]
-# name = "project"
+# name = "Main"
 # root = "Main"
 
 [[lean_lib]]
-name = "project"
+name = "Main"
 
 [[require]]
 name = "mathlib"
