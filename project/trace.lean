@@ -1,5 +1,4 @@
 import Mathlib.LinearAlgebra.Matrix.CharPoly.Minpoly
-import Mathlib.FieldTheory.Minpoly.Basic
 
 notation "t" => (Polynomial.X : Polynomial ℚ)
 
@@ -9,8 +8,7 @@ open Function minpoly Polynomial Set
 variable (M : Matrix (Fin 2) (Fin 2) ℚ)
 
 
-lemma det_one (h : ∃ n ≥ 1, M^n = 1) :
-    (det M = 1) ∨ (det M = -1) := by
+lemma det_one (h : ∃ n ≥ 1, M^n = 1) : (det M = 1) ∨ (det M = -1) := by
   rcases h with ⟨n, nge, finiteorder⟩
   have h₁ : det (M^n) = 1 := by simp [finiteorder]
   rw [det_pow, pow_eq_one_iff_of_ne_zero] at h₁
@@ -19,34 +17,17 @@ lemma det_one (h : ∃ n ≥ 1, M^n = 1) :
   · exact Or.inr neg
   · linarith
 
-lemma charpoly_two_by :
-    M.charpoly = t^2 - (C M.trace)*t + (C M.det) := by -- exact charpoly_fin_two ℚ
-  have trace : M.trace = M 0 0 + M 1 1 := by simp [trace]
-  rw [trace, charpoly]
-  have t00 : M.charmatrix 0 0 = t - C (M 0 0) := by simp
-  have t01 : M.charmatrix 0 1 =   - C (M 0 1) := by simp
-  have t10 : M.charmatrix 1 0 =   - C (M 1 0) := by simp
-  have t11 : M.charmatrix 1 1 = t - C (M 1 1) := by simp
-  repeat rw [det_fin_two]
-  rw [t00, t01, t10, t11]
-  simp
-  ring
-
-lemma trace_classification_one
-          (h : ∃ n ≥ 1, M^n = 1) (h' : det M = 1) :
-        (trace M = 2) ∨ (trace M = -2) ∨ (trace M = -1) ∨
-        (trace M = 0) ∨ (trace M = 1) := by
+lemma trace_classification_one (h : ∃ n ≥ 1, M^n = 1) (h' : det M = 1) :
+    (trace M = 2) ∨ (trace M = -2) ∨ (trace M = -1) ∨ (trace M = 0) ∨ (trace M = 1) := by
   rcases h with ⟨n, nge, finiteorder⟩
-  have charpolyM : M.charpoly = t^2 - (C (trace M))*t + (C (det M)) := charpoly_two_by M
+  have charpolyM : M.charpoly = t^2 - (C (trace M))*t + (C (det M)) := charpoly_fin_two M
   rw [h'] at charpolyM
   simp at charpolyM
   sorry
 
-lemma trace_classification_neg
-        (h : ∃ n ≥ 1, M^n = 1) (h' : det M = -1) :
-        (trace M = 0) := by
+lemma trace_classification_neg (h : ∃ n ≥ 1, M^n = 1) (h' : det M = -1) : (trace M = 0) := by
   rcases h with ⟨n, nge, finiteorder⟩
-  have charpolyM : M.charpoly = t^2 - (C (trace M))*t + (C (det M)) := charpoly_two_by M
+  have charpolyM : M.charpoly = t^2 - (C (trace M))*t + (C (det M)) := charpoly_fin_two M
   rw [h'] at charpolyM
   simp at charpolyM
   sorry
@@ -59,7 +40,7 @@ theorem charpoly_classification (h : ∃ n ≥ 1, M^n = 1) :
           (charpoly M = t^2 + 1) ∨
           (charpoly M = t^2 - t + 1) := by
   have det1orneg : (det M = 1) ∨ (det M = -1) := det_one M h
-  have charpolyM : M.charpoly = t^2 - (C (trace M))*t + (C (det M)) := charpoly_two_by M
+  have charpolyM : M.charpoly = t^2 - (C (trace M))*t + (C (det M)) := charpoly_fin_two M
   cases det1orneg with
   | inl det1 =>
     have possible_traces : (trace M = 2) ∨ (trace M = -2) ∨ (trace M = -1) ∨ (trace M = 0) ∨ (trace M = 1) := trace_classification_one M h det1
@@ -108,8 +89,7 @@ theorem charpoly_classification (h : ∃ n ≥ 1, M^n = 1) :
       _ = t^2 - 0*t - 1 := by rw [possible_traces_neg, detneg1]; norm_num; ring
       _ = (t + 1)*(t - 1) := by ring
 
-lemma charpoly_classification_eq
-    (h : ∃ n ≥ 1, M^n = 1) (α : ℚ) (h' : M = scalar _ α) :
+lemma charpoly_classification_eq (h : ∃ n ≥ 1, M^n = 1) (α : ℚ) (h' : M = scalar _ α) :
     (charpoly M = (t - 1)*(t - 1)) ∨ (charpoly M = (t + 1)*(t + 1)) := by
   rcases h with ⟨n, ⟨hn, hm⟩⟩
   have h₁ : charpoly M = (t - C α)*(t - C α) := by
@@ -131,8 +111,7 @@ lemma charpoly_classification_eq
   · left; rw [one] at h₁; exact h₁
   · right; simp [neg] at h₁; assumption
 
-lemma charpoly_classification_neq
-      (h : ∃ n ≥ 1, M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
+lemma charpoly_classification_neq (h : ∃ n ≥ 1, M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
       (charpoly M = t^2 - 1) ∨
       (charpoly M = t^2 + t + 1) ∨
       (charpoly M = t^2 + 1) ∨
@@ -158,8 +137,7 @@ lemma need_eq (a b : ℚ) (h : a ≠ 0) : t = (C a⁻¹) * ((C a)*t + (C b)) + (
     rw [inv_mul_cancel₀ h]
     simp
 
-lemma charpoly_eq_minpoly
-    (h : ∃ n ≥ 1, M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
+lemma charpoly_eq_minpoly (h : ∃ n ≥ 1, M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
     M.charpoly = minpoly ℚ M :=  by
   have auxchar: M.charpoly.natDegree = 2 := by
     exact Matrix.charpoly_natDegree_eq_dim M
@@ -241,8 +219,7 @@ lemma charpoly_eq_minpoly
   rw [sthis]
   simp
 
-lemma minpoly_eq (h : ∃ n ≥ 1, M^n = 1)
-    (α : ℚ) (h' : M = scalar _ α) :
+lemma minpoly_eq (h : ∃ n ≥ 1, M^n = 1) (α : ℚ) (h' : M = scalar _ α) :
     (minpoly ℚ M = t - 1) ∨ (minpoly ℚ M = t + 1) := by
   rcases h with ⟨n, ⟨hn, hm⟩⟩
   have h₁ : minpoly ℚ M = (t - C α) := by
@@ -266,8 +243,7 @@ lemma minpoly_eq (h : ∃ n ≥ 1, M^n = 1)
   · left; rw [one] at h₁; exact h₁
   · simp [neg] at h₁; exact Or.inr h₁
 
-lemma minpoly_neq
-    (h : ∃ n ≥ 1, M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
+lemma minpoly_neq (h : ∃ n ≥ 1, M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
     (minpoly ℚ M = t^2 - 1) ∨
     (minpoly ℚ M = t^2 + t + 1) ∨
     (minpoly ℚ M = t^2 + 1) ∨
@@ -275,8 +251,7 @@ lemma minpoly_neq
   rw [← charpoly_eq_minpoly M h h']
   exact charpoly_classification_neq M h h'
 
-lemma charpoly_dvd (n : ℕ) (hn : n ≥ 1)
-    (h : M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
+lemma charpoly_dvd (n : ℕ) (hn : n ≥ 1) (h : M^n = 1) (h' : ∀ α : ℚ, M ≠ scalar _ α) :
     charpoly M ∣ t^n - 1 := by
   have h₁ : charpoly M = minpoly ℚ M := charpoly_eq_minpoly M ⟨n, hn, h⟩ h'
   rw [h₁]
@@ -297,3 +272,5 @@ theorem conjugate_classification (h : ∃ n ≥ 1, M^n = 1) :
   · left; use 1
     simp
     sorry
+
+#min_imports

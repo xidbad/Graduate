@@ -1,13 +1,13 @@
-name = "finorder"
+name = "project"
 version = "0.1.0"
-defaultTargets = ["finorder"]
+defaultTargets = ["project"]
 
 # [[lean_exe]]
-# name = "finorder"
+# name = "project"
 # root = "Main"
 
 [[lean_lib]]
-name = "finorder"
+name = "project"
 
 [[require]]
 name = "mathlib"

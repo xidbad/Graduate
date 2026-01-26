@@ -1,0 +1,33 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"o": ["2701f4652f01de2f.olean"],
+  "i": "c165efd786372fe4.ilean",
+  "c": "c4d48cf0bbd65fb0.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\Cli\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean;C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\lib\\lean c:\\Users\\zen morishita\\.elan\\toolchains\\leanprover--lean4---v4.27.0\\bin\\lean.exe C:\\Users\\Lean\\Graduate\\project\\project.lean -o C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\lib\\lean\\project.olean -i C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\lib\\lean\\project.ilean -c C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\ir\\project.c --setup C:\\Users\\Lean\\Graduate\\project\\.lake\\build\\ir\\project.setup.json --json",
+   "level": "trace"},
+  {"message":
+   "project.lean:497:0: import Mathlib.RingTheory.Polynomial.Cyclotomic.Roots",
+   "level": "info"}],
+ "inputs":
+ [["project:deps",
+   [["deps",
+     [["project/project:extraDep", [["@project:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Mathlib.RingTheory.Polynomial.Cyclotomic.Roots transitive imports (legacy)",
+         "4baa66a200666487"],
+        ["Mathlib.RingTheory.Polynomial.Cyclotomic.Roots:importAllArts",
+         "f9cc0e8674ed1067"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit db93fe1608548721853390a10cd40580fe7d22ae",
+   "9a2be90fd35343e5"],
+  ["C:\\Users\\Lean\\Graduate\\project\\project.lean", "f92c4409d94ea186"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "c76a84e5a3b439b9"}
