@@ -18,65 +18,49 @@ local notation "Φ" n => cyclotomic n ℚ
 
 
 -- 最小多項式の次数は2以下
-lemma minpoly_deg_le_two : (minpoly ℚ M.val).natDegree ≤ 2 := by
-  have h₁ : (charpoly M.val).natDegree = 2 :=
-    charpoly_natDegree_eq_dim M.val  -- 固有多項式の次数は行列の次元に等しい
-  have h₂ : minpoly ℚ M.val ∣ charpoly M.val :=
-    dvd ℚ M.val (aeval_self_charpoly M.val)  -- 固有多項式もMを根に持つ
+lemma minpoly_deg_le_two : (minpoly ℚ M.val).natDegree ≤ 2 :=
   calc
     _ ≤ (charpoly M.val).natDegree := by
-      apply natDegree_le_of_dvd h₂           -- 割り切られる側の次数の方が大きい
-      · apply ne_zero_of_natDegree_gt        -- 多項式が0でない → 次数が0より大きい
+      apply natDegree_le_of_dvd (dvd ℚ M.val (aeval_self_charpoly M.val))
+      · apply ne_zero_of_natDegree_gt
         show 0 < (charpoly M.val).natDegree
-        rw [h₁]; decide
-    _ = 2 := by rw [h₁]
+        rw [charpoly_natDegree_eq_dim]; decide
+    _ = 2 := charpoly_natDegree_eq_dim M.val
 
 
 -- 最小多項式は X^n - 1 を割り切る
 lemma minpoly_dvd_X_pow_sub_one (h' : n = orderOf M.val) :
     minpoly ℚ M.val ∣ X ^ n - 1 := by
-  have h₁ : aeval M.val (X ^ n - 1 : ℚ[X]) = 0 := by  -- X^n - 1もMを根に持つ
-    rw [h', aeval_sub, map_pow, aeval_X, pow_orderOf_eq_one, map_one, sub_self]
-  apply dvd; exact h₁
+  apply dvd
+  rw [aeval_sub, map_pow, aeval_X, map_one, h', pow_orderOf_eq_one, sub_self]
 
 
 -- 最小多項式にはモニックな既約因子が存在する
 lemma exist_normalizefactor : ∃ f : ℚ[X], Monic f ∧ Irreducible f ∧ f ∣ minpoly ℚ M.val := by
-  apply exists_monic_irreducible_factor      -- 単元でない多項式はモニックな既約因子を持つ
-  have h₁ : ¬IsUnit (minpoly ℚ M.val) := by
-    rw [isUnit_iff_degree_eq_zero]; push_neg  -- 単元ならば次数は0
-    have h₂ : 0 < (minpoly ℚ M.val).degree :=
-      degree_pos (isIntegral M.val)           -- Mが整的(モニック多項式の根)ならば最小多項式の次数は0より大きい
-    exact Ne.symm (_root_.ne_of_lt h₂)        -- 0 < a → 0 ≠ a
-  exact h₁
+  apply exists_monic_irreducible_factor
+  rw [isUnit_iff_degree_eq_zero]; push_neg
+  exact Ne.symm (_root_.ne_of_lt (degree_pos (isIntegral M.val)))
 
 
 -- 最小多項式の任意のモニックな既約因子はnの約数iについて第i円分多項式と一致する
 lemma normalizedfactor_eq_cyclotomic (h : IsOfFinOrder M.val) (h' : n = orderOf M.val)
     (f : ℚ[X]) (fmon : Monic f) (firr : Irreducible f) (fdvd : f ∣ minpoly ℚ M.val) :
     ∃ i ∈ n.divisors, f = Φ i := by
-  have npos : 0 < n := by simp only [h', orderOf_pos_iff, h]
-  have hdvd : f ∣ X^n - 1 := dvd_trans fdvd (minpoly_dvd_X_pow_sub_one M h')
-  rw [← prod_cyclotomic_eq_X_pow_sub_one npos] at hdvd
   have h₁ : ∃ i ∈ n.divisors, f ∣ Φ i := by
-    rw [← (prime firr).dvd_finset_prod_iff]; exact hdvd
+    rw [← (prime firr).dvd_finset_prod_iff, prod_cyclotomic_eq_X_pow_sub_one (by simp only [h', orderOf_pos_iff, h])]
+    exact dvd_trans fdvd (minpoly_dvd_X_pow_sub_one M h')
   obtain ⟨i, imem, hdvd'⟩ := h₁
-  have h₂ : Irreducible (Φ i) :=
-    cyclotomic.irreducible_rat (pos_of_mem_divisors imem)
-  have h₃ : Associated f (Φ i) := associated_of_dvd firr h₂ hdvd'
   use i, imem
-  rcases h₃ with ⟨u, feq⟩
-  have ueq : u.val = 1 := by
-    have h1 : Monic (Φ i) := cyclotomic.monic i ℚ
-    rw [← feq] at h1
-    have h2 : Monic u.val := Monic.of_mul_monic_left fmon h1
-    rw [← Monic.isUnit_iff h2]; exact u.isUnit
-  rw [← feq, ueq, mul_one]
+  rcases associated_of_dvd firr (cyclotomic.irreducible_rat (pos_of_mem_divisors imem)) hdvd' with ⟨u, feq⟩
+  rw [← feq, left_eq_mul₀ (Monic.ne_zero fmon), ← Monic.isUnit_iff]
+  · exact u.isUnit
+  · apply Monic.of_mul_monic_left fmon
+    rw [feq]; exact cyclotomic.monic i ℚ
 
 
+#leansearch "a * b = a ↔ b = 1?"
 -- 円分多項式の次数はオイラーのトーシェント関数と一致する
-lemma cyclotomic_deg_eq_totient (n : ℕ) : (Φ n).natDegree = φ n :=
-  natDegree_cyclotomic n ℚ
+lemma cyclotomic_deg_eq_totient (n : ℕ) : (Φ n).natDegree = φ n := natDegree_cyclotomic n ℚ
 
 
 -- 任意の自然数nはその素因数の指数乗の積で表せる
