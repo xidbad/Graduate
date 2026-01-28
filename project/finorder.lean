@@ -2,12 +2,12 @@ import Mathlib.RingTheory.Polynomial.Cyclotomic.Roots
 
 set_option autoImplicit true
 
-notation "E"  => !![1, 0; 0, 1]    -- 位数 1, det = 1,  tr = 2,  t - 1
-notation "-E" => !![-1, 0; 0, -1]  -- 位数 2, det = 1,  tr = -2, t + 1
-notation "P1" => !![1, 0; 0, -1]   -- 位数 2, det = -1, tr = 0,  (t + 1)(t - 1)
-notation "P2" => !![0, -1; 1, -1]  -- 位数 3, det = 1,  tr = -1, t^2 + t + 1
-notation "P3" => !![0, 1; -1, 0]   -- 位数 4, det = 1,  tr = 0,  t^2 + 1
-notation "P4" => !![0, -1; 1, 1]   -- 位数 6, det = 1,  tr = 1,  t^2 - t + 1
+notation "E"  => !![1, 0; 0, 1]    -- 位数 1, det =  1, tr =  2, t - 1
+notation "-E" => !![-1, 0; 0, -1]  -- 位数 2, det =  1, tr = -2, t + 1
+notation "P1" => !![1, 0; 0, -1]   -- 位数 2, det = -1, tr =  0, (t + 1)(t - 1)
+notation "P2" => !![0, -1; 1, -1]  -- 位数 3, det =  1, tr = -1, t^2 + t + 1
+notation "P3" => !![0, 1; -1, 0]   -- 位数 4, det =  1, tr =  0, t^2 + 1
+notation "P4" => !![0, -1; 1, 1]   -- 位数 6, det =  1, tr =  1, t^2 - t + 1
 
 open Matrix Polynomial minpoly Finset Irreducible
 namespace Nat
@@ -96,13 +96,14 @@ lemma totient_eq_two (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : n ∈ ({3, 4, 6} 
   rw [n_exist, totient_mul] at h'
   set a := n.factorization 2
   set b := n.factorization 3
-  · have h₁ : φ (2 ^ a) ∣ 2 := by nth_rw 2 [← h']; apply dvd_mul_right
-    have h₂ : φ (2 ^ a) ≤ 2 := le_of_dvd (by decide) h₁
-    interval_cases h₃ : φ (2 ^ a)
+  · have h₁ : φ (2 ^ a) ≤ 2 := by
+      apply le_of_dvd (by decide)
+      nth_rw 2 [← h']; apply dvd_mul_right
+    interval_cases h₂ : φ (2 ^ a)
     -- φ (2^a) = 0
     · linarith
     -- φ (2^a) = 1
-    · rw [totient_eq_one_iff] at h₃
+    · rw [totient_eq_one_iff] at h₂
       rw [one_mul] at h'
       have bneq : b ≠ 0 := by
         by_contra
@@ -112,7 +113,7 @@ lemma totient_eq_two (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : n ∈ ({3, 4, 6} 
         · simp at h'; omega
         · decide
         · exact pos_of_ne_zero bneq
-      rcases h₃ with one | two
+      rcases h₂ with one | two
       -- 2^a = 1
       · rw [n_exist, one, one_mul, hb, pow_one]; decide
       -- 2^a = 2
@@ -123,20 +124,17 @@ lemma totient_eq_two (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : n ∈ ({3, 4, 6} 
       -- 3^b = 1
       · rw [one, mul_one] at n_exist
         have ha : a = 2 := by
-          rw [totient_prime_pow] at h₃
-          · simp [pow_eq_self_iff h₂] at h₃; exact h₃
+          rw [totient_prime_pow] at h₂
+          · simp [pow_eq_self_iff h₁] at h₂; exact h₂
           · decide
-          · have aneq : a ≠ 0 := by
-              by_contra
-              rw [this, pow_zero, totient_one] at h₃; linarith
-            apply pos_of_ne_zero aneq
+          · apply pos_of_ne_zero
+            by_contra
+            rw [this, pow_zero, totient_one] at h₂; linarith
         rw [n_exist, ha]; decide
       -- 3^b = 2
-      · have hb : b = 0 ∨ b ≥ 1 := by omega
-        obtain zero | one := hb
-        · rw [zero, pow_zero] at two; linarith
-        · have hb' : 3 ≤ 3 ^ b := by
-            nth_rw 1 [← pow_one 3]; exact le_pow one
+      · rcases eq_zero_or_pos b with (hb | hb)
+        · rw [hb, pow_zero] at two; linarith
+        · have hb' : 3 ≤ 3 ^ b := le_pow hb
           linarith
   · apply coprime_pow_primes <;> decide
 

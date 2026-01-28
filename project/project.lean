@@ -2,12 +2,12 @@ import Mathlib.RingTheory.Polynomial.Cyclotomic.Roots
 
 set_option autoImplicit true
 
-notation "E"  => !![1, 0; 0, 1]    -- 位数 1, det = 1,  tr = 2,  t - 1
-notation "-E" => !![-1, 0; 0, -1]  -- 位数 2, det = 1,  tr = -2, t + 1
-notation "P1" => !![1, 0; 0, -1]   -- 位数 2, det = -1, tr = 0,  (t + 1)(t - 1)
-notation "P2" => !![0, -1; 1, -1]  -- 位数 3, det = 1,  tr = -1, t^2 + t + 1
-notation "P3" => !![0, 1; -1, 0]   -- 位数 4, det = 1,  tr = 0,  t^2 + 1
-notation "P4" => !![0, -1; 1, 1]   -- 位数 6, det = 1,  tr = 1,  t^2 - t + 1
+notation "E"  => !![1, 0; 0, 1]    -- 位数 1, det =  1, tr =  2, t - 1
+notation "-E" => !![-1, 0; 0, -1]  -- 位数 2, det =  1, tr = -2, t + 1
+notation "P1" => !![1, 0; 0, -1]   -- 位数 2, det = -1, tr =  0, (t + 1)(t - 1)
+notation "P2" => !![0, -1; 1, -1]  -- 位数 3, det =  1, tr = -1, t^2 + t + 1
+notation "P3" => !![0, 1; -1, 0]   -- 位数 4, det =  1, tr =  0, t^2 + 1
+notation "P4" => !![0, -1; 1, 1]   -- 位数 6, det =  1, tr =  1, t^2 - t + 1
 
 open Matrix Polynomial minpoly Finset Irreducible
 namespace Nat
@@ -148,11 +148,9 @@ lemma totient_eq_two (n : ℕ) (h : n ≠ 0) (h' : φ n = 2) : n ∈ ({3, 4, 6} 
             apply pos_of_ne_zero aneq
         rw [n_exist, ha]; decide
       -- 3^b = 2
-      · have hb : b = 0 ∨ b ≥ 1 := by omega
-        obtain zero | one := hb
-        · rw [zero, pow_zero] at two; linarith
-        · have hb' : 3 ≤ 3 ^ b := by
-            nth_rw 1 [← pow_one 3]; exact le_pow one
+      · obtain hb | hb := eq_zero_or_pos b
+        · rw [hb, pow_zero] at two; linarith
+        · have hb' : 3 ≤ 3 ^ b := le_pow hb
           linarith
   · apply coprime_pow_primes <;> decide
 
